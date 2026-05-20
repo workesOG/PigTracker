@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Af Theis Thomsen -->
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane prefHeight="270.0" prefWidth="370.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pigtracker.controller.components.KpiController">
+   <children>
+      <VBox prefHeight="270.0" prefWidth="370.0" styleClass="indented-card" stylesheets="@../styles/app.css">
+                           <children>
+                              <HBox prefHeight="35.0" prefWidth="370.0" styleClass="indented-card-header">
+                                 <children>
+                                    <Label fx:id="titleLabel" styleClass="indented-card-label" text="KPI Card Title" />
+                                 </children>
+                              </HBox>
+                              <VBox prefHeight="235.0" prefWidth="370.0" styleClass="indented-card-content">
+                                 <children>
+                                    <Label prefHeight="18.0" prefWidth="382.0" style="-fx-alignment: CENTER;" text="Mean" />
+                                    <HBox alignment="CENTER" prefHeight="28.0" prefWidth="260.0">
+                                       <VBox.margin>
+                                          <Insets left="50.0" right="50.0" />
+                                       </VBox.margin>
+                                       <children>
+                                          <Label fx:id="valueLabel" style="-fx-alignment: CENTER;" text="x.xx">
+                                             <padding>
+                                                <Insets left="5.0" right="5.0" />
+                                             </padding>
+                                          </Label>
+                                          <Label fx:id="unitLabel" style="-fx-alignment: CENTER;" text="unit">
+                                             <padding>
+                                                <Insets left="5.0" right="5.0" />
+                                             </padding>
+                                          </Label>
+                                          <ImageView fx:id="trendIcon" fitHeight="20.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                                             <image>
+                                                <Image url="@../images/upwards_64.png" />
+                                             </image>
+                                          </ImageView>
+                                          <Label fx:id="trendLabel" style="-fx-alignment: CENTER;" text="+/-x%">
+                                             <padding>
+                                                <Insets left="5.0" right="5.0" />
+                                             </padding>
+                                          </Label>
+                                       </children>
+                                       <padding>
+                                          <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                       </padding>
+                                    </HBox>
+                                    <LineChart>
+                                      <xAxis>
+                                        <CategoryAxis side="BOTTOM" />
+                                      </xAxis>
+                                      <yAxis>
+                                        <NumberAxis side="LEFT" />
+                                      </yAxis>
+                                    </LineChart>
+                                 </children>
+                              </VBox>
+                           </children>
+                        </VBox>
+   </children>
+</AnchorPane>

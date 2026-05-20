@@ -1,3 +1,5 @@
+//Af Theis Thomsen
+
 package pigtracker.controller;
 
 import javafx.fxml.FXML;
@@ -36,7 +38,5 @@ public class LoginController {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        System.out.println("Skibidi");
     }
 }
