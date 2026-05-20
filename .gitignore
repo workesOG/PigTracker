@@ -24,3 +24,5 @@ app/.env
 app/!.env.example
 
 .vscode
+
+app/bin
