@@ -20,17 +20,26 @@
     -fx-text-fill: #32382c;
 }
 
+.warning-label {
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 12px;
+    -fx-text-fill: #ec7560;
+}
+
 .button {
     -fx-font-family: "Segoe UI";
     -fx-font-size: 14px;
-    -fx-background-color: #3b82f6;
-    
-    -fx-background-radius: 8;
-    -fx-padding: 8 16 8 16;
+    -fx-base: #aec29e;
 }
 
 .button:hover {
-    -fx-background-color: #2563eb;
+    -fx-base: #828b7b;
+}
+
+.button:default {
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 14px;
+    -fx-base: #aec29e;
 }
 
 .tab {

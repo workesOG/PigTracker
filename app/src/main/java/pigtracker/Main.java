@@ -7,27 +7,48 @@ import javafx.stage.Stage;
 
 public class Main extends Application {
 
+    private static Stage primaryStage;
+
     @Override
     public void start(Stage stage) throws Exception {
-        System.out.println(
-            Main.class.getResource("/views/main-view.fxml")
-        );
 
-        FXMLLoader loader = new FXMLLoader(
-            Main.class.getResource(
-                "/views/main-view.fxml"
-            )
-        );
-                
+        primaryStage = stage;
 
-        Scene scene = new Scene(loader.load());
+        if (hasSavedSession()) {
+            showMainView();
+        } else {
+            showLoginView();
+        }
 
-        stage.setTitle("Pig Performance Tracker");
-        stage.setScene(scene);
-        stage.show();
+        primaryStage.show();
     }
 
     public static void main(String[] args) {
         launch();
+    }
+
+    private boolean hasSavedSession() {
+        // needs implementation
+        return false;
+    }
+
+    public static void showLoginView() throws Exception {
+        FXMLLoader loader = 
+                new FXMLLoader(Main.class.getResource("/views/login-view.fxml"));
+
+        Scene scene = new Scene(loader.load());
+
+        primaryStage.setScene(scene);
+        primaryStage.setTitle("Login");
+    }
+    
+    public static void showMainView() throws Exception {
+        FXMLLoader loader = 
+                new FXMLLoader(Main.class.getResource("/views/main-view.fxml"));
+
+        Scene scene = new Scene(loader.load());
+
+        primaryStage.setScene(scene);
+        primaryStage.setTitle("PPT Manager Interface");
     }
 }
