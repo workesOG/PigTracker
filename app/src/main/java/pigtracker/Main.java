@@ -1,3 +1,5 @@
+// Af Theis Thomsen
+
 package pigtracker;
 
 import java.sql.Connection;
@@ -43,18 +45,16 @@ public class Main extends Application {
     }
 
     public static void showLoginView() throws Exception {
-        FXMLLoader loader = 
-                new FXMLLoader(Main.class.getResource("/views/login-view.fxml"));
+        FXMLLoader loader = new FXMLLoader(Main.class.getResource("/views/login-view.fxml"));
 
         Scene scene = new Scene(loader.load());
 
         primaryStage.setScene(scene);
         primaryStage.setTitle("Login");
     }
-    
+
     public static void showMainView() throws Exception {
-        FXMLLoader loader = 
-                new FXMLLoader(Main.class.getResource("/views/main-view.fxml"));
+        FXMLLoader loader = new FXMLLoader(Main.class.getResource("/views/main-view.fxml"));
 
         Scene scene = new Scene(loader.load());
 
