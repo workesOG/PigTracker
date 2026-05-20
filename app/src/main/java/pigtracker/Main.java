@@ -1,9 +1,12 @@
 package pigtracker;
 
+import java.sql.Connection;
+
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import pigtracker.dao.ConnectionDAO;
 
 public class Main extends Application {
 
@@ -21,6 +24,13 @@ public class Main extends Application {
         }
 
         primaryStage.show();
+
+        try (Connection conn = ConnectionDAO.getConnection()) {
+            System.out.println("Connected. Database: " + conn.getCatalog());
+        } catch (Exception e) {
+            System.out.println("FAILED to connect:");
+            e.printStackTrace();
+        }
     }
 
     public static void main(String[] args) {
