@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <!-- Af Theis Thomsen -->
 
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -41,14 +46,47 @@
                <children>
                   <VBox prefHeight="200.0" prefWidth="100.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                      <children>
-                        <AnchorPane prefHeight="376.0" prefWidth="398.0">
+                        <AnchorPane maxHeight="376.0" prefHeight="376.0" prefWidth="398.0">
                            <children>
-                              <Label styleClass="section-label" text="Population Distribution Graphs" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0" />
+                              <VBox prefHeight="200.0" prefWidth="100.0" spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                 <children>
+                                    <Label styleClass="section-label" text="Population Distribution Graphs" />
+                                    <BarChart>
+                                      <xAxis>
+                                        <CategoryAxis side="BOTTOM" />
+                                      </xAxis>
+                                      <yAxis>
+                                        <NumberAxis side="LEFT" />
+                                      </yAxis>
+                                    </BarChart>
+                                    <fx:include fx:id="pdgMetricSegmentedToggle" source="../components/segmented-toggle.fxml" />
+                                 </children>
+                                 <padding>
+                                    <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                                 </padding>
+                              </VBox>
                            </children></AnchorPane>
                         <Separator prefHeight="4.0" prefWidth="200.0" />
-                        <AnchorPane prefHeight="376.0" prefWidth="398.0">
+                        <AnchorPane maxHeight="376.0" prefHeight="376.0" prefWidth="398.0">
                            <children>
-                              <Label styleClass="section-label" text="Historical Import Comparison" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0" />
+                              <VBox layoutX="10.0" layoutY="10.0" spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                 <children>
+                                    <Label styleClass="section-label" text="Historical Import Comparison" />
+                                    <BarChart>
+                                       <xAxis>
+                                          <CategoryAxis side="BOTTOM" />
+                                       </xAxis>
+                                       <yAxis>
+                                          <NumberAxis side="LEFT" />
+                                       </yAxis>
+                                    </BarChart>
+                                    <fx:include fx:id="hicMetricSegmentedToggle" source="../components/segmented-toggle.fxml" />
+                                    <fx:include fx:id="hicPeriodSegmentedToggle" source="../components/segmented-toggle.fxml" />
+                                 </children>
+                                 <padding>
+                                    <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                                 </padding>
+                              </VBox>
                            </children></AnchorPane>
                      </children>
                   </VBox>

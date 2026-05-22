@@ -4,6 +4,7 @@ package pigtracker.controller;
 
 import javafx.fxml.FXML;
 import pigtracker.controller.components.KpiController;
+import pigtracker.controller.components.SegmentedToggleController;
 
 public class DashboardController {
     @FXML
@@ -19,8 +20,19 @@ public class DashboardController {
     private KpiController populationCardController;
 
     @FXML
+    private SegmentedToggleController pdgMetricSegmentedToggleController;
+
+    @FXML
+    private SegmentedToggleController hicMetricSegmentedToggleController;
+
+    @FXML
+    private SegmentedToggleController hicPeriodSegmentedToggleController;
+
+    @FXML
     public void initialize() {
         setupKpis();
+        setupPopulationDistributionGraphSection();
+        setupHistoricalImportGraphSection();
     }
 
     private void setupKpis() {
@@ -43,5 +55,14 @@ public class DashboardController {
         populationCardController.setValue(1.2, 1);
         populationCardController.setUnit("pigs");
         populationCardController.setTrend(-0.4);
+    }
+
+    private void setupPopulationDistributionGraphSection() {
+        pdgMetricSegmentedToggleController.setOptions("FCR", "Feed Cns.", "Weight");
+    }
+
+    private void setupHistoricalImportGraphSection() {
+        hicMetricSegmentedToggleController.setOptions("FCR", "Feed Cns.", "Weight");
+        hicPeriodSegmentedToggleController.setOptions("7 Days", "1 Month", "6 Months");
     }
 }
