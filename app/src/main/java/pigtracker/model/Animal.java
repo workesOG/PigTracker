@@ -33,9 +33,7 @@ public record Animal(
 
     // Returns a copy of this animal with the given id (used after insert).
     public Animal withId(int newId) {
-        return new Animal(newId, location, animalNumber, responder, groupName, feedType,
-            dailyRationG, status, stoppedReason, stoppedAt, fcr, startWeightKg, totalFeedKg,
-            weightGainKg, endWeightKg, completedDays, startDay, createdAt);
+        return new Animal(newId, location, animalNumber, responder, groupName, feedType, dailyRationG, status, stoppedReason, stoppedAt, fcr, startWeightKg, totalFeedKg, weightGainKg, endWeightKg, completedDays, startDay, createdAt);
     }
 
     // Returns true if the animal is still being registered.
