@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+
+<AnchorPane minHeight="28.0" minWidth="28.0" prefHeight="28.0" styleClass="filter-chip" stylesheets="@../styles/app.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pigtracker.controller.components.FilterChipController">
+   <children>
+      <HBox alignment="CENTER_LEFT" prefHeight="100.0" spacing="5.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <Label fx:id="valueLabel" text="&lt;value&gt;:" />
+            <Label fx:id="ruleLabel" text="&lt;rule&gt;" />
+            <Label fx:id="removeButton" styleClass="filter-chip-close-button" text="✕" />
+         </children>
+         <padding>
+            <Insets left="5.0" right="5.0" />
+         </padding>
+      </HBox>
+   </children>
+</AnchorPane>

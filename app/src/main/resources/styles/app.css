@@ -169,6 +169,28 @@
         16;
 }
 
+/* ---------- Filter Chips ---------- */
+
+.filter-chip {
+
+    -fx-background-color: #bcc9af;
+
+    -fx-background-radius: 3;
+    -fx-border-radius: 3;
+
+    -fx-border-color:
+        rgba(63, 75, 54, 0.12);
+
+    -fx-border-width: 1;
+}
+
+.filter-chip-close-button {
+    -fx-text-fill: #5e403b;
+}
+
+.filter-chip-close-button:hover {
+    -fx-text-fill: #ec7560;
+}
 
 /* ---------- Segmented Toggle ---------- */
 
