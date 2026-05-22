@@ -1,5 +1,10 @@
 package pigtracker.controller;
 
-public class MainController {
+import javafx.fxml.FXML;
 
+public class MainController {
+    @FXML
+    private void handleLogout() {
+        System.out.println("Test");
+    }
 }
