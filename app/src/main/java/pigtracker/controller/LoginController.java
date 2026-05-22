@@ -1,12 +1,16 @@
-//Af Theis Thomsen
+//Af Nikolaj Jakobsen
 
 package pigtracker.controller;
+
+import java.sql.SQLException;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import pigtracker.Main;
+import pigtracker.service.AuthenticationException;
+import pigtracker.service.UserService;
 
 public class LoginController {
     @FXML
@@ -23,12 +27,20 @@ public class LoginController {
         String username = usernameField.getText();
         String password = passwordField.getText();
 
-        boolean valid = username.equals("admin") && password.equals("1234");
-
-        if (!valid) {
+        try {
+            UserService.login(username, password);
+        } catch (AuthenticationException e) {
+            errorLabel.setText("Invalid username or password");
             errorLabel.setVisible(true);
 
             passwordField.clear();
+
+            return;
+        } catch (SQLException e) {
+            errorLabel.setText("Could not reach the database");
+            errorLabel.setVisible(true);
+
+            e.printStackTrace();
 
             return;
         }
