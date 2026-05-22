@@ -8,6 +8,7 @@ import pigtracker.util.Session;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 
 public final class UserService {
 
@@ -17,8 +18,29 @@ public final class UserService {
     public static void login(String username, String password) throws SQLException, AuthenticationException {
         User user = UserDAO.findByCredentials(username, password)
             .orElseThrow(() -> new AuthenticationException("Invalid username or password"));
-            
+
         Session.setCurrentUser(user);
+    }
+
+    // Restores a session on startup from the remembered username, if that user still exists.
+    public static boolean restoreSession() throws SQLException {
+        String username = Session.getRememberedUsername();
+
+        if (username == null) {
+            return false;
+        }
+
+        Optional<User> user = UserDAO.findByUsername(username);
+
+        if (user.isEmpty()) {
+            Session.clear();
+
+            return false;
+        }
+
+        Session.setCurrentUser(user.get());
+
+        return true;
     }
 
     // Logs the current user out by clearing the session.
