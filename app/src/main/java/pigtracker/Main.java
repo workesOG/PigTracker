@@ -9,6 +9,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import pigtracker.dao.ConnectionDAO;
+import pigtracker.service.UserService;
 
 public class Main extends Application {
 
@@ -16,7 +17,7 @@ public class Main extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-
+        
         primaryStage = stage;
 
         if (hasSavedSession()) {
@@ -40,8 +41,14 @@ public class Main extends Application {
     }
 
     private boolean hasSavedSession() {
-        // needs implementation
-        return false;
+        // Af Nikolaj Jakobsen
+        try {
+            return UserService.restoreSession();
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            return false;
+        }
     }
 
     public static void showLoginView() throws Exception {
