@@ -19,12 +19,12 @@
               <tabs>
                 <Tab text="Animals">
                   <content>
-                     <fx:include fx:id="animalData" source="animal-data-view.fxml" />
+                     <fx:include fx:id="animalData" source="specific-data-view.fxml" />
                   </content>
                 </Tab>
                 <Tab text="Visits">
                   <content>
-                    <fx:include source="visit-data-view.fxml" />
+                    <fx:include fx:id="visitData" source="specific-data-view.fxml" />
                   </content>
                 </Tab>
               </tabs>
