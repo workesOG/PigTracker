@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane stylesheets="@../styles/app.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pigtracker.controller.components.TopThreePigsInfoPanelController">
+   <children>
+      <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" spacing="5.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <HBox alignment="CENTER" VBox.vgrow="ALWAYS">
+               <children>
+                  <Label fx:id="metricLabel" text="&lt;metric&gt;" HBox.hgrow="ALWAYS" />
+               </children>
+            </HBox>
+            <HBox spacing="10.0">
+               <children>
+                  <VBox>
+                     <children>
+                        <Label fx:id="pig1Label" text="Pig #x:" />
+                        <Label fx:id="pig2Label" text="Pig #x:" />
+                        <Label fx:id="pig3Label" text="Pig #x:" />
+                     </children>
+                  </VBox>
+                  <VBox HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label fx:id="pig1ValueLabel" text="x.xx" />
+                        <Label fx:id="pig2ValueLabel" text="x.xx" />
+                        <Label fx:id="pig3ValueLabel" text="x.xx" />
+                     </children>
+                  </VBox>
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+   </children>
+</AnchorPane>

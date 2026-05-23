@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane stylesheets="@../styles/app.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pigtracker.controller.components.MeanMedianInfoPanelController">
+   <children>
+      <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" spacing="5.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <HBox alignment="CENTER">
+               <children>
+                  <Label fx:id="metricLabel" text="&lt;metric&gt;" />
+               </children>
+            </HBox>
+            <HBox spacing="10.0">
+               <children>
+                  <VBox>
+                     <children>
+                        <Label text="Mean:" />
+                        <Label text="Median:" />
+                     </children>
+                  </VBox>
+                  <VBox>
+                     <children>
+                        <Label fx:id="meanLabel" text="x.xx" />
+                        <Label fx:id="medianLabel" text="x.xx" />
+                     </children>
+                  </VBox>
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+   </children>
+</AnchorPane>

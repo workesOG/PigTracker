@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.AreaChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="756.0" prefWidth="948.0" stylesheets="@../styles/app.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pigtracker.controller.ReportController">
+   <children>
+      <VBox prefHeight="200.0" prefWidth="100.0" spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <HBox prefHeight="160.0" prefWidth="200.0" spacing="10.0">
+               <children>
+                  <VBox prefHeight="160.0" prefWidth="300.0" styleClass="indented-card">
+                     <children>
+                        <HBox prefHeight="35.0" prefWidth="100.0" styleClass="indented-card-header">
+                           <children>
+                              <Label alignment="CENTER" style="-fx-alignment: CENTER;" styleClass="indented-card-label" text="Metadata" />
+                           </children>
+                        </HBox>
+                        <VBox spacing="2.0" styleClass="indented-card-content" VBox.vgrow="ALWAYS">
+                           <children>
+                              <Label fx:id="reportNumberLabel" text="Report #" />
+                              <HBox spacing="10.0" VBox.vgrow="ALWAYS">
+                                 <children>
+                                    <VBox>
+                                       <children>
+                                          <Label text="Imported:" />
+                                          <Label text="Period:" />
+                                          <Label text="Data Rows:" />
+                                          <Label text="Num. Pigs:" />
+                                       </children>
+                                    </VBox>
+                                    <VBox HBox.hgrow="ALWAYS">
+                                       <children>
+                                          <Label fx:id="importDateLabel" text="xx/xx/xxxx" />
+                                          <Label fx:id="periodLabel" text="xx/xx/xxxx - xx/xx/xxxx" />
+                                          <Label fx:id="dataRowsLabel" text="xxxx" />
+                                          <Label fx:id="numPigsLabel" text="xxx" />
+                                       </children>
+                                    </VBox>
+                                 </children>
+                              </HBox>
+                           </children>
+                        </VBox>
+                     </children>
+                  </VBox>
+                  <VBox prefHeight="160.0" prefWidth="300.0" styleClass="indented-card" HBox.hgrow="ALWAYS">
+                     <children>
+                        <HBox prefHeight="35.0" prefWidth="100.0" styleClass="indented-card-header">
+                           <children>
+                              <Label alignment="CENTER" style="-fx-alignment: CENTER;" styleClass="indented-card-label" text="Outstanding Values" />
+                           </children>
+                        </HBox>
+                        <VBox spacing="2.0" styleClass="indented-card-content" VBox.vgrow="ALWAYS">
+                           <children>
+                              <HBox fillHeight="false" spacing="5.0">
+                                 <children>
+                                    <fx:include fx:id="fcrPigInfoPanel" source="../components/top-three-pigs-info-panel.fxml" HBox.hgrow="ALWAYS" />
+                                    <Separator orientation="VERTICAL" prefHeight="200.0" />
+                                    <fx:include fx:id="weightPigInfoPanel" source="../components/top-three-pigs-info-panel.fxml" HBox.hgrow="ALWAYS" />
+                                    <Separator orientation="VERTICAL" prefHeight="200.0" />
+                                    <fx:include fx:id="feedPigInfoPanel" source="../components/top-three-pigs-info-panel.fxml" HBox.hgrow="ALWAYS" />
+                                    <Separator orientation="VERTICAL" prefHeight="200.0" />
+                                    <fx:include fx:id="mostVisitsPigInfoPanel" source="../components/top-three-pigs-info-panel.fxml" HBox.hgrow="ALWAYS" />
+                                    <Separator orientation="VERTICAL" prefHeight="200.0" />
+                                    <fx:include fx:id="longestVisitsPigInfoPanel" source="../components/top-three-pigs-info-panel.fxml" HBox.hgrow="ALWAYS" />
+                                 </children>
+                              </HBox>
+                           </children>
+                        </VBox>
+                     </children>
+                  </VBox>
+               </children>
+            </HBox>
+            <HBox prefHeight="100.0" prefWidth="200.0" spacing="10.0" VBox.vgrow="ALWAYS">
+               <children>
+                  <VBox prefHeight="200.0" prefWidth="300.0" spacing="10.0">
+                     <children>
+                        <VBox prefHeight="160.0" prefWidth="300.0" styleClass="indented-card" VBox.vgrow="ALWAYS">
+                           <children>
+                              <HBox prefHeight="35.0" prefWidth="100.0" styleClass="indented-card-header">
+                                 <children>
+                                    <Label alignment="CENTER" style="-fx-alignment: CENTER;" styleClass="indented-card-label" text="Mean and Median values" />
+                                 </children>
+                              </HBox>
+                              <VBox spacing="2.0" styleClass="indented-card-content" VBox.vgrow="ALWAYS">
+                                 <children>
+                                    <fx:include fx:id="fcrMeanAndMedianValuesPanel" source="../components/mean-median-info-panel.fxml" />
+                                    <Separator prefWidth="200.0" />
+                                    <fx:include fx:id="weightMeanAndMedianValuesPanel" source="../components/mean-median-info-panel.fxml" />
+                                    <Separator prefWidth="200.0" />
+                                    <fx:include fx:id="dailyFeedMeanAndMedianValuesPanel" source="../components/mean-median-info-panel.fxml" />
+                                    <Separator prefWidth="200.0" />
+                                    <fx:include fx:id="visitFeedMeanAndMedianValuesPanel" source="../components/mean-median-info-panel.fxml" />
+                                    <Separator prefWidth="200.0" />
+                                    <fx:include fx:id="visitsPerPigMeanAndMedianValuesPanel" source="../components/mean-median-info-panel.fxml" />
+                                    <Separator prefWidth="200.0" />
+                                    <fx:include fx:id="visitLengthMeanAndMedianValuesPanel" source="../components/mean-median-info-panel.fxml" />
+                                 </children>
+                              </VBox>
+                           </children>
+                        </VBox>
+                     </children>
+                  </VBox>
+                  <VBox prefHeight="200.0" prefWidth="100.0" HBox.hgrow="ALWAYS">
+                     <children>
+                        <VBox prefHeight="200.0" prefWidth="300.0" VBox.vgrow="ALWAYS">
+                           <children>
+                              <VBox prefHeight="160.0" prefWidth="300.0" styleClass="indented-card" VBox.vgrow="ALWAYS">
+                                 <children>
+                                    <HBox prefHeight="35.0" prefWidth="100.0" styleClass="indented-card-header">
+                                       <children>
+                                          <Label alignment="CENTER" style="-fx-alignment: CENTER;" styleClass="indented-card-label" text="Activity Density Graph" />
+                                       </children>
+                                    </HBox>
+                                    <VBox spacing="2.0" styleClass="indented-card-content" VBox.vgrow="ALWAYS">
+                                       <children>
+                                          <AreaChart VBox.vgrow="ALWAYS">
+                                            <xAxis>
+                                              <CategoryAxis side="BOTTOM" />
+                                            </xAxis>
+                                            <yAxis>
+                                              <NumberAxis side="LEFT" />
+                                            </yAxis>
+                                          </AreaChart>
+                                       </children>
+                                    </VBox>
+                                 </children>
+                              </VBox>
+                           </children>
+                        </VBox>
+                     </children>
+                  </VBox>
+               </children>
+            </HBox>
+         </children>
+         <padding>
+            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+         </padding>
+      </VBox>
+   </children>
+</AnchorPane>

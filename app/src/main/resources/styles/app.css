@@ -154,6 +154,36 @@
     -fx-font-weight: bold;
 }
 
+/* ---------- List Header ---------- */
+
+.list-header {
+
+    -fx-background-color: #e0e0e0;
+
+    -fx-background-radius:
+        0 0 0 0;
+
+    -fx-padding:
+        10 14;
+
+    -fx-border-color:
+        rgba(63, 75, 54, 0.15);
+
+    -fx-border-width:
+        0 0 1 0;
+}
+
+.list-header-label {
+
+    -fx-font-size:
+        16px;
+
+    -fx-font-weight:
+        bold;
+
+    -fx-text-fill:
+        #485e33;
+}
 
 /* ---------- Separators ---------- */
 
