@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="722.0" prefWidth="898.0" stylesheets="@../styles/app.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pigtracker.controller.AnimalDataController">
+   <children>
+      <VBox prefHeight="200.0" prefWidth="100.0" spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <padding>
+            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+         </padding>
+         <children>
+            <Label styleClass="section-label" text="Search, Sorting and Filtering" />
+            <HBox maxHeight="116.0" prefHeight="86.0" prefWidth="1078.0" spacing="5.0">
+               <children>
+                  <VBox minWidth="140.0" prefHeight="200.0" prefWidth="140.0" spacing="5.0">
+                     <children>
+                        <Label text="Global Search" />
+                        <TextField fx:id="searchTextField" prefWidth="140.0" />
+                        <HBox alignment="CENTER">
+                           <children>
+                              <Button fx:id="searchButton" alignment="CENTER" mnemonicParsing="false" text="Search" />
+                           </children>
+                        </HBox>
+                     </children>
+                  </VBox>
+                  <Separator orientation="VERTICAL" prefHeight="200.0" prefWidth="4.0" />
+                  <VBox minWidth="120.0" prefHeight="200.0" prefWidth="120.0" spacing="5.0">
+                     <children>
+                        <Label text="Sort" />
+                        <ChoiceBox fx:id="sortDropdown" prefWidth="150.0" />
+                        <HBox alignment="CENTER">
+                           <children>
+                              <HBox prefHeight="100.0" prefWidth="120.0">
+                                 <children>
+                                    <fx:include fx:id="sortSegmentedToggle" source="../components/segmented-toggle.fxml" />
+                                 </children>
+                              </HBox>
+                           </children>
+                        </HBox>
+                     </children>
+                  </VBox>
+                  <Separator orientation="VERTICAL" prefHeight="200.0" prefWidth="4.0" />
+                  <VBox minWidth="140.0" prefHeight="200.0" prefWidth="140.0" spacing="5.0">
+                     <children>
+                        <Label text="Date (From - To)" />
+                        <DatePicker fx:id="dateFrom" />
+                        <DatePicker fx:id="dateTo" />
+                     </children>
+                  </VBox>
+                  <Separator orientation="VERTICAL" prefHeight="200.0" prefWidth="4.0" />
+                  <VBox maxHeight="86.0" prefHeight="86.0" prefWidth="565.0" spacing="5.0">
+                     <children>
+                        <Label text="Filters" />
+                        <HBox>
+                           <children>
+                              <fx:include fx:id="filterChipContainer" maxHeight="116.0" source="../components/filter-chip-container.fxml" HBox.hgrow="ALWAYS" />
+                           </children>
+                        </HBox>
+                     </children>
+                  </VBox>
+               </children>
+            </HBox>
+            <Label styleClass="section-label" text="Data" />
+            <TableView prefHeight="10000.0" prefWidth="200.0">
+              <columns>
+                <TableColumn prefWidth="75.0" text="C1" />
+                <TableColumn prefWidth="75.0" text="C2" />
+              </columns>
+            </TableView>
+         </children>
+      </VBox>
+   </children>
+</AnchorPane>
