@@ -9,6 +9,9 @@ import javafx.scene.layout.Priority;
 import java.util.ArrayList;
 import java.util.List;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+
 public class SegmentedToggleController {
 
     @FXML
@@ -19,6 +22,8 @@ public class SegmentedToggleController {
 
     private ToggleButton pressedButton;
     private boolean allowNoSelection;
+
+    private ChangeListener<String> selectionChangeListener;
 
     public void setOptions(String... labels) {
         setOptions(false, labels);
@@ -32,6 +37,30 @@ public class SegmentedToggleController {
         buttons.clear();
 
         toggleGroup.selectToggle(null);
+        toggleGroup.selectedToggleProperty().addListener((obs, oldToggle, newToggle) -> {
+            if (selectionChangeListener != null) {
+                String oldSelection = oldToggle == null ? null : ((ToggleButton)oldToggle).getText();
+                String newSelection = newToggle == null ? null : ((ToggleButton)newToggle).getText();
+                selectionChangeListener.changed(new ObservableValue<String>() {
+                    @Override
+                    public void addListener(ChangeListener<? super String> listener) {}
+
+                    @Override
+                    public void removeListener(ChangeListener<? super String> listener) {}
+
+                    @Override
+                    public void addListener(javafx.beans.InvalidationListener listener) {}
+
+                    @Override
+                    public void removeListener(javafx.beans.InvalidationListener listener) {}
+
+                    @Override
+                    public String getValue() {
+                        return newSelection;
+                    }
+                }, oldSelection, newSelection);
+            }
+        });
 
         for (int i = 0; i < labels.length; i++) {
 
@@ -53,9 +82,7 @@ public class SegmentedToggleController {
             if (allowNoSelection) {
 
                 button.setOnMousePressed(e -> {
-                    pressedButton = button.isSelected()
-                            ? button
-                            : null;
+                    pressedButton = button.isSelected() ? button : null;
                 });
 
                 button.setOnAction(e -> {
@@ -77,41 +104,52 @@ public class SegmentedToggleController {
         container.setFillHeight(true);
     }
 
-    public void setSelected(String value) {
+    public void addSelectionChangeListener(ChangeListener<String> listener) {
+        this.selectionChangeListener = listener;
+    }
 
-        for (ToggleButton button : buttons) {
-
-            if (button.getText().equals(value)) {
-
-                button.setSelected(true);
-
-                return;
-            }
+    public void setSelected(String label) {
+        ToggleButton button = findByLabel(label);
+        if (button == null) {
+            throw new IllegalArgumentException("Option not found: " + label);
         }
+        button.setSelected(true);
 
-        throw new IllegalArgumentException(
-                "Option not found: " + value);
     }
 
     public void clearSelection() {
 
         if (!allowNoSelection)
-            throw new IllegalStateException(
-                    "Selection cannot be cleared");
+            throw new IllegalStateException("Selection cannot be cleared");
 
         toggleGroup.selectToggle(null);
     }
 
     public String getSelected() {
 
-        ToggleButton selected = (ToggleButton) toggleGroup.getSelectedToggle();
+        ToggleButton selected = (ToggleButton)toggleGroup.getSelectedToggle();
 
-        return selected == null
-                ? null
-                : selected.getText();
+        return selected == null ? null : selected.getText();
     }
 
     public boolean hasSelection() {
         return toggleGroup.getSelectedToggle() != null;
+    }
+
+    public void enableToggle(String label, boolean enabled) {
+        ToggleButton button = findByLabel(label);
+        if (button == null) {
+            throw new IllegalArgumentException("Option not found: " + label);
+        }
+        button.setDisable(!enabled);
+    }
+
+    private ToggleButton findByLabel(String label) {
+        for (ToggleButton button : buttons) {
+            if (button.getText().equals(label)) {
+                return button;
+            }
+        }
+        return null;
     }
 }
