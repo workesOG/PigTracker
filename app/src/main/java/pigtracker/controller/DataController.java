@@ -7,7 +7,7 @@ import pigtracker.model.MetricOption;
 
 public class DataController {
     @FXML
-    AnimalDataController animalDataController;
+    SpecificDataController animalDataController;
 
     @FXML
     public void initialize() {

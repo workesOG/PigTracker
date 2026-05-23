@@ -13,7 +13,7 @@ import pigtracker.controller.components.SegmentedToggleController;
 import pigtracker.model.MetricOption;
 
 @SuppressWarnings("unused")
-public class AnimalDataController {
+public class SpecificDataController {
     @FXML
     private TextField searchTextField;
 
