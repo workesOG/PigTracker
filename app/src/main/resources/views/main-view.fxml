@@ -16,11 +16,6 @@
               <fx:include source="dashboard-view.fxml" />
             </content>
          </Tab>
-         <Tab text="Actions">
-            <content>
-               <fx:include source="actions-view.fxml" />
-            </content>
-         </Tab>
          <Tab text="Data">
             <content>
                <fx:include source="data-view.fxml" />
