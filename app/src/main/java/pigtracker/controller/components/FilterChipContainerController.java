@@ -10,6 +10,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javafx.scene.Scene;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import pigtracker.controller.FilterCreationFormController;
+import pigtracker.controller.components.FilterChipController.Operator;
+import pigtracker.model.MetricOption;
+
 public class FilterChipContainerController {
 
     @FXML
@@ -18,28 +25,48 @@ public class FilterChipContainerController {
     @FXML
     private Button addFilterButton;
 
+    private ArrayList<MetricOption> availableMetrics;
+
     private final List<FilterChipController> filters = new ArrayList<>();
 
-    public FilterChipController addFilter(
-            String value,
-            FilterChipController.Operator operator,
-            double num1) {
-
-        return addFilter(value, operator, num1, null);
+    public void setMetrics(ArrayList<MetricOption> metrics) {
+        availableMetrics = metrics;
     }
 
-    public FilterChipController addFilter(
-            String value,
-            FilterChipController.Operator operator,
-            double num1,
-            Double num2) {
+    @FXML
+    private void openFilterCreationPopup() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/filter-creation-form.fxml"));
+            Scene scene = new Scene(loader.load());
+            Stage stage = new Stage();
+            stage.setScene(scene);
+            stage.initModality(Modality.APPLICATION_MODAL);
+
+            FilterCreationFormController controller = loader.getController();
+
+            controller.setupForm(availableMetrics);
+            controller.setFilterChipContainerController(this);
+
+            stage.showAndWait();
+        } catch (IOException e) {
+            throw new RuntimeException("Could not open filter creation popup", e);
+        }
+    }
+
+    public FilterChipController addFilter(MetricOption metric, Operator operator, String value1) {
+
+        return addFilter(metric, operator, value1, null);
+    }
+
+    public FilterChipController addFilter(MetricOption metric, FilterChipController.Operator operator, String value1,
+            String value2) {
         try {
 
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/components/filter-chip.fxml"));
             Node chip = loader.load();
 
             FilterChipController controller = loader.getController();
-            controller.setRule(value, operator, num1, num2);
+            controller.setRule(metric.getLabel(), operator, value1, value2);
             controller.setRemoveAction(() -> removeFilter(chip, controller));
 
             int insertIndex = container.getChildren().indexOf(addFilterButton);
@@ -55,9 +82,7 @@ public class FilterChipContainerController {
         }
     }
 
-    public void removeFilter(
-            Node chip,
-            FilterChipController controller) {
+    public void removeFilter(Node chip, FilterChipController controller) {
 
         container.getChildren().remove(chip);
 

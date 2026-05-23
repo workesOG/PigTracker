@@ -6,10 +6,7 @@ import javafx.scene.control.Label;
 public class FilterChipController {
 
     public enum Operator {
-        LESS_THAN,
-        GREATER_THAN,
-        EQUALS,
-        RANGE
+        LESS_THAN, GREATER_THAN, EQUALS, RANGE
     }
 
     @FXML
@@ -24,28 +21,17 @@ public class FilterChipController {
     private String value;
     private Operator operator;
 
-    private Double num1;
-    private Double num2;
+    private String num1;
+    private String num2;
 
     private Runnable removeAction;
 
-    public void setRule(
-            String value,
-            Operator operator,
-            double num1) {
+    public void setRule(String value, Operator operator, String num1) {
 
-        setRule(
-                value,
-                operator,
-                num1,
-                null);
+        setRule(value, operator, num1, null);
     }
 
-    public void setRule(
-            String value,
-            Operator operator,
-            double num1,
-            Double num2) {
+    public void setRule(String value, Operator operator, String num1, String num2) {
 
         this.value = value;
         this.operator = operator;
@@ -57,32 +43,20 @@ public class FilterChipController {
 
         switch (operator) {
 
-            case LESS_THAN ->
-                ruleLabel.setText("< " + format(num1));
+        case LESS_THAN -> ruleLabel.setText("< " + num1);
 
-            case GREATER_THAN ->
-                ruleLabel.setText("> " + format(num1));
+        case GREATER_THAN -> ruleLabel.setText("> " + num1);
 
-            case EQUALS ->
-                ruleLabel.setText("= " + format(num1));
+        case EQUALS -> ruleLabel.setText("= " + num1);
 
-            case RANGE -> {
+        case RANGE -> {
 
-                if (num2 == null)
-                    throw new IllegalArgumentException("Range requires num2");
+            if (num2 == null)
+                throw new IllegalArgumentException("Range requires num2");
 
-                ruleLabel.setText(
-                        "[" + format(num1) + " - " + format(num2) + "]");
-            }
+            ruleLabel.setText("[" + num1 + " - " + num2 + "]");
         }
-    }
-
-    private String format(double value) {
-
-        if (value == (int) value)
-            return String.valueOf((int) value);
-
-        return String.format("%.2f", value);
+        }
     }
 
     @FXML
@@ -93,8 +67,7 @@ public class FilterChipController {
         });
     }
 
-    public void setRemoveAction(
-            Runnable action) {
+    public void setRemoveAction(Runnable action) {
 
         this.removeAction = action;
     }
@@ -107,30 +80,11 @@ public class FilterChipController {
         return operator;
     }
 
-    public double getNum1() {
+    public String getNum1() {
         return num1;
     }
 
-    public Double getNum2() {
+    public String getNum2() {
         return num2;
-    }
-
-    public boolean matches(double x) {
-
-        return switch (operator) {
-
-            case LESS_THAN ->
-                x < num1;
-
-            case GREATER_THAN ->
-                x > num1;
-
-            case EQUALS ->
-                x == num1;
-
-            case RANGE ->
-                x >= num1
-                        && x <= num2;
-        };
     }
 }

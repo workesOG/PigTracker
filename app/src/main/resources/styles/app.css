@@ -61,7 +61,7 @@
 
     -fx-font-weight: bold;
 
-    -fx-background-radius: 6;
+    -fx-background-radius: 3;
 
     -fx-focus-color:
         #8a544d;
@@ -91,10 +91,42 @@
         rgba(138, 84, 77, 0.20);
 }
 
-.logout-button:default {
+/* ---------- Discard Button ---------- */
+
+.discard-button {
+
+    -fx-base: #caa09a;
+
+    -fx-text-fill: #5e3129;
+
+    -fx-background-radius: 3;
+
+    -fx-focus-color:
+        #8a544d;
+
+    -fx-faint-focus-color:
+        rgba(138, 84, 77, 0.20);
+}
+
+.discard-button:hover {
 
     -fx-base:
-        #caa09a;
+        #b68d87;
+}
+
+.discard-button:pressed {
+
+    -fx-base:
+        #a37c76;
+}
+
+.discard-button:focused {
+
+    -fx-focus-color:
+        #8a544d;
+
+    -fx-faint-focus-color:
+        rgba(138, 84, 77, 0.20);
 }
 
 /* ---------- Tabs ---------- */
@@ -239,10 +271,10 @@
 .segment-left {
 
     -fx-background-radius:
-        5 0 0 5;
+        3 0 0 3;
 
     -fx-border-radius:
-        5 0 0 5;
+        3 0 0 3;
 }
 
 .segment-middle {
@@ -257,8 +289,8 @@
 .segment-right {
 
     -fx-background-radius:
-        0 5 5 0;
+        0 3 3 0;
 
     -fx-border-radius:
-        0 5 5 0;
+        0 3 3 0;
 }
