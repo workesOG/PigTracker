@@ -76,6 +76,24 @@ public final class VisitDAO {
         return visits;
     }
 
+    // Returns all visits belonging to the given report, oldest first.
+    public static List<Visit> findByReportId(int reportId) throws SQLException {
+        String sql = "SELECT id, animal_number, responder, report_id, location, visit_time, duration_sec, weight_g, feed_intake_g FROM Visits WHERE report_id = ? ORDER BY visit_time";
+        List<Visit> visits = new ArrayList<>();
+
+        try (Connection conn = ConnectionDAO.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, reportId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    visits.add(mapRow(rs));
+                }
+            }
+        }
+
+        return visits;
+    }
+
     // Returns every visit, oldest first. Note: this table can be very large.
     public static List<Visit> getAll() throws SQLException {
         String sql = "SELECT id, animal_number, responder, report_id, location, visit_time, duration_sec, weight_g, feed_intake_g FROM Visits ORDER BY visit_time";
