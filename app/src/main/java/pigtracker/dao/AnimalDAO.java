@@ -21,7 +21,7 @@ public final class AnimalDAO {
 
     // Inserts a new animal and returns it, including the database-generated id.
     public static Animal create(Animal animal) throws SQLException {
-        String sql = "INSERT INTO Animals (animal_number, responder, location, group_name, feed_type, daily_ration_g, status, stopped_reason, stopped_at, fcr, start_weight_kg, total_feed_kg, weight_gain_kg, end_weight_kg, completed_days, start_day) "
+        String sql = "INSERT INTO Animals (animal_number, responder, location, group_name, feed_type, daily_ration_g, status, stopped_reason, stopped_at, fcr, start_weight_kg, total_feed_kg, weight_gain_kg, latest_weight_kg, completed_days, start_day) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = ConnectionDAO.getConnection();
@@ -39,7 +39,7 @@ public final class AnimalDAO {
 
     // Returns the animal with the given id, or empty if it does not exist.
     public static Optional<Animal> findById(int id) throws SQLException {
-        String sql = "SELECT id, animal_number, responder, location, group_name, feed_type, daily_ration_g, status, stopped_reason, stopped_at, fcr, start_weight_kg, total_feed_kg, weight_gain_kg, end_weight_kg, completed_days, start_day, created_at FROM Animals WHERE id = ?";
+        String sql = "SELECT id, animal_number, responder, location, group_name, feed_type, daily_ration_g, status, stopped_reason, stopped_at, fcr, start_weight_kg, total_feed_kg, weight_gain_kg, latest_weight_kg, completed_days, start_day, created_at FROM Animals WHERE id = ?";
 
         try (Connection conn = ConnectionDAO.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
@@ -52,7 +52,7 @@ public final class AnimalDAO {
 
     // Returns the animal with the given responder (RFID tag), or empty if none.
     public static Optional<Animal> findByResponder(String responder) throws SQLException {
-        String sql = "SELECT id, animal_number, responder, location, group_name, feed_type, daily_ration_g, status, stopped_reason, stopped_at, fcr, start_weight_kg, total_feed_kg, weight_gain_kg, end_weight_kg, completed_days, start_day, created_at FROM Animals WHERE responder = ?";
+        String sql = "SELECT id, animal_number, responder, location, group_name, feed_type, daily_ration_g, status, stopped_reason, stopped_at, fcr, start_weight_kg, total_feed_kg, weight_gain_kg, latest_weight_kg, completed_days, start_day, created_at FROM Animals WHERE responder = ?";
 
         try (Connection conn = ConnectionDAO.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, responder);
@@ -65,7 +65,7 @@ public final class AnimalDAO {
 
     // Returns every animal, ordered by location and animal number.
     public static List<Animal> getAll() throws SQLException {
-        String sql = "SELECT id, animal_number, responder, location, group_name, feed_type, daily_ration_g, status, stopped_reason, stopped_at, fcr, start_weight_kg, total_feed_kg, weight_gain_kg, end_weight_kg, completed_days, start_day, created_at FROM Animals ORDER BY location, animal_number";
+        String sql = "SELECT id, animal_number, responder, location, group_name, feed_type, daily_ration_g, status, stopped_reason, stopped_at, fcr, start_weight_kg, total_feed_kg, weight_gain_kg, latest_weight_kg, completed_days, start_day, created_at FROM Animals ORDER BY location, animal_number";
         List<Animal> animals = new ArrayList<>();
 
         try (Connection conn = ConnectionDAO.getConnection();
@@ -81,7 +81,7 @@ public final class AnimalDAO {
 
     // Returns all animals with the given status - used when filtering the herd.
     public static List<Animal> findByStatus(Animal.Status status) throws SQLException {
-        String sql = "SELECT id, animal_number, responder, location, group_name, feed_type, daily_ration_g, status, stopped_reason, stopped_at, fcr, start_weight_kg, total_feed_kg, weight_gain_kg, end_weight_kg, completed_days, start_day, created_at FROM Animals WHERE status = ? ORDER BY location, animal_number";
+        String sql = "SELECT id, animal_number, responder, location, group_name, feed_type, daily_ration_g, status, stopped_reason, stopped_at, fcr, start_weight_kg, total_feed_kg, weight_gain_kg, latest_weight_kg, completed_days, start_day, created_at FROM Animals WHERE status = ? ORDER BY location, animal_number";
         List<Animal> animals = new ArrayList<>();
 
         try (Connection conn = ConnectionDAO.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -99,7 +99,7 @@ public final class AnimalDAO {
 
     // Updates an existing animal by id; returns true if a row was changed.
     public static boolean update(Animal animal) throws SQLException {
-        String sql = "UPDATE Animals SET animal_number = ?, responder = ?, location = ?, group_name = ?, feed_type = ?, daily_ration_g = ?, status = ?, stopped_reason = ?, stopped_at = ?, fcr = ?, start_weight_kg = ?, total_feed_kg = ?, weight_gain_kg = ?, end_weight_kg = ?, completed_days = ?, start_day = ? WHERE id = ?";
+        String sql = "UPDATE Animals SET animal_number = ?, responder = ?, location = ?, group_name = ?, feed_type = ?, daily_ration_g = ?, status = ?, stopped_reason = ?, stopped_at = ?, fcr = ?, start_weight_kg = ?, total_feed_kg = ?, weight_gain_kg = ?, latest_weight_kg = ?, completed_days = ?, start_day = ? WHERE id = ?";
 
         try (Connection conn = ConnectionDAO.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             bindAnimal(ps, animal);
@@ -136,7 +136,7 @@ public final class AnimalDAO {
         ps.setObject(11, a.startWeightKg());
         ps.setObject(12, a.totalFeedKg());
         ps.setObject(13, a.weightGainKg());
-        ps.setObject(14, a.endWeightKg());
+        ps.setObject(14, a.latestWeightKg());
         ps.setObject(15, a.completedDays());
         ps.setObject(16, a.startDay());
     }
@@ -148,7 +148,7 @@ public final class AnimalDAO {
                 Animal.Status.valueOf(rs.getString("status").trim().toUpperCase()), rs.getString("stopped_reason"),
                 rs.getObject("stopped_at", LocalDateTime.class), getNullableDouble(rs, "fcr"),
                 getNullableDouble(rs, "start_weight_kg"), getNullableDouble(rs, "total_feed_kg"),
-                getNullableDouble(rs, "weight_gain_kg"), getNullableDouble(rs, "end_weight_kg"),
+                getNullableDouble(rs, "weight_gain_kg"), getNullableDouble(rs, "latest_weight_kg"),
                 getNullableInt(rs, "completed_days"), rs.getObject("start_day", LocalDate.class),
                 rs.getObject("created_at", LocalDateTime.class));
     }

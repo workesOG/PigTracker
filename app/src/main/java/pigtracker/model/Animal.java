@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 public record Animal(int id, int animalNumber, String responder, int location, String groupName, String feedType,
         Integer dailyRationG, Status status, String stoppedReason, LocalDateTime stoppedAt, Double fcr,
-        Double startWeightKg, Double totalFeedKg, Double weightGainKg, Double endWeightKg, Integer completedDays,
+        Double startWeightKg, Double totalFeedKg, Double weightGainKg, Double latestWeightKg, Integer completedDays,
         LocalDate startDay, LocalDateTime createdAt) {
 
     public enum Status {
@@ -17,7 +17,7 @@ public record Animal(int id, int animalNumber, String responder, int location, S
     // Returns a copy of this animal with the given id (used after insert).
     public Animal withId(int newId) {
         return new Animal(newId, animalNumber, responder, location, groupName, feedType, dailyRationG, status,
-                stoppedReason, stoppedAt, fcr, startWeightKg, totalFeedKg, weightGainKg, endWeightKg, completedDays,
+                stoppedReason, stoppedAt, fcr, startWeightKg, totalFeedKg, weightGainKg, latestWeightKg, completedDays,
                 startDay, createdAt);
     }
 

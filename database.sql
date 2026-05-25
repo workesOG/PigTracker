@@ -18,7 +18,7 @@ DROP TABLE IF EXISTS Animals;
 GO
 
 CREATE TABLE Animals (
-    id              INT IDENTITY(1,1) PRIMARY KEY,
+    id              INT IDENTITY(1,1) PRIMARY KEY,  
     animal_number   INT           NOT NULL,
     responder       VARCHAR(20)   NOT NULL,
     location        INT           NOT NULL,
@@ -31,7 +31,7 @@ CREATE TABLE Animals (
     start_weight_kg DECIMAL(7,2)  NULL,
     total_feed_kg   DECIMAL(7,2)  NULL,
     weight_gain_kg  DECIMAL(7,2)  NULL,
-    end_weight_kg   DECIMAL(7,2)  NULL,
+    latest_weight_kg   DECIMAL(7,2)  NULL,
     completed_days  INT           NULL,
     start_day       DATE          NULL,
     created_at      DATETIME2(0)  NOT NULL
