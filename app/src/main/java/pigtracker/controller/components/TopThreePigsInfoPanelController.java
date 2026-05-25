@@ -1,3 +1,5 @@
+// Theis Thomsen
+
 package pigtracker.controller.components;
 
 import javafx.fxml.FXML;

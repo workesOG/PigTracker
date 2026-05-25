@@ -1,3 +1,5 @@
+// Theis Thomsen
+
 package pigtracker.model;
 
 import java.util.LinkedHashMap;
