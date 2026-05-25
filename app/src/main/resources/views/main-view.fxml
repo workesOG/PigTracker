@@ -34,7 +34,7 @@
         <menus>
           <Menu mnemonicParsing="false" text="Import / Export">
             <items>
-              <MenuItem mnemonicParsing="false" text="Import from CSV" />
+              <MenuItem mnemonicParsing="false" onAction="#openImportWindow" text="Import from CSV" />
                   <MenuItem mnemonicParsing="false" text="Re-import from CSV" />
                   <MenuItem mnemonicParsing="false" text="Export to CSV" />
             </items>
@@ -42,7 +42,7 @@
           <Menu mnemonicParsing="false" text="Session">
             <items>
               <MenuItem mnemonicParsing="false" onAction="#handleLogout" text="Log out" />
-                  <MenuItem mnemonicParsing="false" text="Clear session data" />
+                  <MenuItem mnemonicParsing="false" onAction="#handleClearSessionData" text="Clear session data" />
             </items>
           </Menu>
         </menus>
