@@ -5,8 +5,8 @@ import javafx.scene.control.Label;
 import java.util.List;
 import pigtracker.controller.components.MeanMedianInfoPanelController;
 import pigtracker.controller.components.TopThreePigsInfoPanelController;
-import pigtracker.model.MeanMedianPanelData;
-import pigtracker.model.TopThreePigsPanelData;
+import pigtracker.model.MeanMedianMetric;
+import pigtracker.model.TopThreePigs;
 
 public class ReportController {
     @FXML
@@ -65,7 +65,7 @@ public class ReportController {
         numPigsLabel.setText(numPigs);
     }
 
-    public void setTopPigPanels(List<TopThreePigsPanelData> panels) {
+    public void setTopPigPanels(List<TopThreePigs> panels) {
         if (panels.size() != 5) {
             throw new IllegalArgumentException("Expected exactly 5 panels of data");
         }
@@ -81,7 +81,7 @@ public class ReportController {
         }
     }
 
-    public void setMeanMedianPanels(List<MeanMedianPanelData> panels) {
+    public void setMeanMedianPanels(List<MeanMedianMetric> panels) {
         if (panels.size() != 6) {
             throw new IllegalArgumentException("Expected exactly 6 panels of data");
         }
