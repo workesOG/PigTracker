@@ -19,9 +19,10 @@ public final class VisitDAO {
 
     // Inserts a single visit and returns it, including the database-generated id.
     public static Visit insert(Visit visit) throws SQLException {
-        String sql = "INSERT INTO Visits (animal_number, responder, location, visit_time, duration_sec, weight_g, feed_intake_g) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Visits (animal_number, responder, report_id, location, visit_time, duration_sec, weight_g, feed_intake_g) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (Connection conn = ConnectionDAO.getConnection(); PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection conn = ConnectionDAO.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             bindVisit(ps, visit);
             ps.executeUpdate();
 
@@ -33,9 +34,10 @@ public final class VisitDAO {
         }
     }
 
-    // Inserts many visits in one transaction - used when importing a PPT visit file.
+    // Inserts many visits in one transaction. Used when importing a PPT visit
+    // file.
     public static void insertBatch(List<Visit> visits) throws SQLException {
-        String sql = "INSERT INTO Visits (animal_number, responder, location, visit_time, duration_sec, weight_g, feed_intake_g) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Visits (animal_number, responder, report_id, location, visit_time, duration_sec, weight_g, feed_intake_g) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = ConnectionDAO.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             conn.setAutoCommit(false);
@@ -55,9 +57,10 @@ public final class VisitDAO {
         }
     }
 
-    // Returns all visits for one animal (by responder), oldest first - used to show its eating events.
+    // Returns all visits for one animal (by responder), oldest first. Used to show
+    // its eating events.
     public static List<Visit> findByResponder(String responder) throws SQLException {
-        String sql = "SELECT id, animal_number, responder, location, visit_time, duration_sec, weight_g, feed_intake_g FROM Visits WHERE responder = ? ORDER BY visit_time";
+        String sql = "SELECT id, animal_number, responder, report_id, location, visit_time, duration_sec, weight_g, feed_intake_g FROM Visits WHERE responder = ? ORDER BY visit_time";
         List<Visit> visits = new ArrayList<>();
 
         try (Connection conn = ConnectionDAO.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -75,10 +78,12 @@ public final class VisitDAO {
 
     // Returns every visit, oldest first. Note: this table can be very large.
     public static List<Visit> getAll() throws SQLException {
-        String sql = "SELECT id, animal_number, responder, location, visit_time, duration_sec, weight_g, feed_intake_g FROM Visits ORDER BY visit_time";
+        String sql = "SELECT id, animal_number, responder, report_id, location, visit_time, duration_sec, weight_g, feed_intake_g FROM Visits ORDER BY visit_time";
         List<Visit> visits = new ArrayList<>();
 
-        try (Connection conn = ConnectionDAO.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+        try (Connection conn = ConnectionDAO.getConnection();
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 visits.add(mapRow(rs));
             }
@@ -87,7 +92,8 @@ public final class VisitDAO {
         return visits;
     }
 
-    // Deletes all visits for one animal (by responder); returns the number of rows removed.
+    // Deletes all visits for one animal (by responder); returns the number of rows
+    // removed.
     public static int deleteByResponder(String responder) throws SQLException {
         String sql = "DELETE FROM Visits WHERE responder = ?";
 
@@ -102,11 +108,12 @@ public final class VisitDAO {
     private static void bindVisit(PreparedStatement ps, Visit v) throws SQLException {
         ps.setInt(1, v.animalNumber());
         ps.setString(2, v.responder());
-        ps.setInt(3, v.location());
-        ps.setObject(4, v.visitTime());
-        ps.setInt(5, v.durationSec());
-        ps.setObject(6, v.weightG());
-        ps.setInt(7, v.feedIntakeG());
+        ps.setInt(3, v.reportId());
+        ps.setInt(4, v.location());
+        ps.setObject(5, v.visitTime());
+        ps.setInt(6, v.durationSec());
+        ps.setObject(7, v.weightG());
+        ps.setInt(8, v.feedIntakeG());
     }
 
     // Builds a Visit object from the current row of the given ResultSet.
@@ -114,15 +121,8 @@ public final class VisitDAO {
         int weight = rs.getInt("weight_g");
         Integer weightG = rs.wasNull() ? null : weight;
 
-        return new Visit(
-            rs.getInt("id"),
-            rs.getInt("animal_number"),
-            rs.getString("responder"),
-            rs.getInt("location"),
-            rs.getObject("visit_time", LocalDateTime.class),
-            rs.getInt("duration_sec"),
-            weightG,
-            rs.getInt("feed_intake_g")
-        );
+        return new Visit(rs.getInt("id"), rs.getInt("animal_number"), rs.getString("responder"), rs.getInt("report_id"),
+                rs.getInt("location"), rs.getObject("visit_time", LocalDateTime.class), rs.getInt("duration_sec"),
+                weightG, rs.getInt("feed_intake_g"));
     }
 }
