@@ -14,15 +14,13 @@ import pigtracker.service.UserService;
 public class Main extends Application {
 
     private static Stage primaryStage;
-    private final boolean DEBUG = true;
 
-    @SuppressWarnings("unused")
     @Override
     public void start(Stage stage) throws Exception {
 
         primaryStage = stage;
 
-        if (hasSavedSession() || DEBUG) {
+        if (hasSavedSession()) {
             showMainView();
         } else {
             showLoginView();
