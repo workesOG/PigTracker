@@ -36,12 +36,12 @@ CREATE TABLE Animals (
     start_day       DATE          NULL,
     created_at      DATETIME2(0)  NOT NULL
         CONSTRAINT DF_Animals_created_at DEFAULT SYSUTCDATETIME(),
-    CONSTRAINT UQ_Animals_responder UNIQUE (responder)
+        CONSTRAINT UQ_Animals_responder UNIQUE (responder),
+        CONSTRAINT UQ_Animals_animal_number UNIQUE (animal_number)
 );
 GO
 
 CREATE INDEX IX_Animals_location ON Animals (location);
-CREATE INDEX IX_Animals_group    ON Animals (group_name);
 CREATE INDEX IX_Animals_status   ON Animals (status);
 GO
 
@@ -51,6 +51,7 @@ GO
 CREATE TABLE Visits (
     id            INT IDENTITY(1,1) PRIMARY KEY,
     animal_number INT          NOT NULL,
+        CONSTRAINT FK_Visits_animal FOREIGN KEY REFERENCES Animals(animal_number),
     report_id     INT          NOT NULL
         CONSTRAINT FK_Visits_report_id FOREIGN KEY REFERENCES Reports(id),
     responder     VARCHAR(20)  NOT NULL,
