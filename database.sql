@@ -21,9 +21,6 @@ CREATE TABLE Animals (
     id              INT IDENTITY(1,1) PRIMARY KEY,
     animal_number   INT           NOT NULL,
     responder       VARCHAR(20)   NOT NULL,
-    group_name      NVARCHAR(50)  NULL,
-    feed_type       NVARCHAR(50)  NULL,
-    daily_ration_g  INT           NULL,
     location        INT           NOT NULL,
     status          NVARCHAR(10)  NOT NULL
         CONSTRAINT DF_Animals_status DEFAULT 'ACTIVE'
