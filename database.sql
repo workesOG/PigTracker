@@ -14,6 +14,22 @@ CREATE TABLE Users (
 );
 GO
 
+DROP TABLE IF EXISTS Reports;
+GO
+
+CREATE TABLE Reports (
+    id           INT IDENTITY(1,1) PRIMARY KEY,
+    import_start DATETIME2(0) NOT NULL,
+    import_end   DATETIME2(0) NOT NULL,
+    row_count    INT NOT NULL,
+    pig_count    INT NOT NULL,
+    created_by   INT NOT NULL
+        CONSTRAINT FK_Reports_created_by FOREIGN KEY REFERENCES Users(id),
+    created_at   DATETIME2(0) NOT NULL
+        CONSTRAINT DF_Reports_created_at DEFAULT SYSUTCDATETIME()
+);
+GO
+
 DROP TABLE IF EXISTS Animals;
 GO
 
