@@ -3,13 +3,16 @@
 <!-- Af Theis Thomsen -->
 
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane prefHeight="662.0" prefWidth="1200.0" stylesheets="@../styles/app.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pigtracker.controller.MainController">
+<AnchorPane prefHeight="830.0" prefWidth="1200.0" stylesheets="@../styles/app.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pigtracker.controller.MainController">
    <children>
-      <TabPane prefHeight="800.0" prefWidth="1200.0" tabClosingPolicy="UNAVAILABLE" tabMinHeight="36.0" tabMinWidth="120.0">
+      <TabPane prefHeight="800.0" prefWidth="1200.0" tabClosingPolicy="UNAVAILABLE" tabMinHeight="36.0" tabMinWidth="120.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="30.0">
         <tabs>
          <Tab text="Dashboard">
             <content>
@@ -26,14 +29,26 @@
               <fx:include source="reports-view.fxml" />
             </content>
          </Tab>
-         <Tab text="Import &amp; Export">
-            <content>
-               <fx:include source="import-export-view.fxml" />
-            </content>
-         </Tab>
          </tabs>
       </TabPane>
-      <Button mnemonicParsing="false" onAction="#handleLogout" prefHeight="32.0" prefWidth="100.0" styleClass="logout-button" text="Log Out" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0" />
+      <Button mnemonicParsing="false" onAction="#handleLogout" prefHeight="32.0" prefWidth="100.0" styleClass="logout-button" text="Log Out" AnchorPane.leftAnchor="1095.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="35.0" />
+      <MenuBar AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <menus>
+          <Menu mnemonicParsing="false" text="Import / Export">
+            <items>
+              <MenuItem mnemonicParsing="false" text="Import from CSV" />
+                  <MenuItem mnemonicParsing="false" text="Re-import from CSV" />
+                  <MenuItem mnemonicParsing="false" text="Export to CSV" />
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="Session">
+            <items>
+              <MenuItem mnemonicParsing="false" text="Log out" />
+                  <MenuItem mnemonicParsing="false" text="Clear session data" />
+            </items>
+          </Menu>
+        </menus>
+      </MenuBar>
 
    </children>
 </AnchorPane>
