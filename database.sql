@@ -1,3 +1,16 @@
+USE master;
+GO
+
+IF DB_ID('PigTracker') IS NOT NULL
+BEGIN
+    ALTER DATABASE PigTracker SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+    DROP DATABASE PigTracker;
+END
+GO
+
+CREATE DATABASE PigTracker;
+GO
+
 USE PigTracker;
 GO
 
