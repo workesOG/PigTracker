@@ -2,7 +2,6 @@ package pigtracker.controller;
 
 import javafx.fxml.FXML;
 import pigtracker.Main;
-import pigtracker.model.Visit;
 import pigtracker.service.UserService;
 import pigtracker.util.Session;
 
@@ -11,7 +10,6 @@ import pigtracker.service.ImportService;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 public class MainController {
     // Nikolaj Jakobsen
@@ -42,11 +40,8 @@ public class MainController {
         File selectedFile = fileChooser.showOpenDialog(Main.getPrimaryStage());
 
         if (selectedFile != null) {
-            int reportId = 1; // For testing, change later.
-
             try {
-                List<Visit> importedVisits = ImportService.importFromCSV(selectedFile, reportId);
-                System.out.println("Imported " + importedVisits.size() + " visits.");
+                ImportService.importFromCSV(selectedFile);
             } catch (IOException e) {
                 e.printStackTrace();
                 // TODO: Show alert dialogue

@@ -1,25 +1,35 @@
+// Theis Thomsen
 package pigtracker.service;
 
+import pigtracker.dao.ReportDAO;
 import pigtracker.dao.VisitDAO;
 import pigtracker.model.Visit;
+import pigtracker.model.Report;
+import pigtracker.util.Session;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 public class ImportService {
 
     // CSV header columns (animal_number; responder; location; visit_time; duration;
     // "weight" or "weight (g)""; feed_intake)
 
-    public static List<Visit> importFromCSV(File file, int reportId) throws IOException {
+    public static int importFromCSV(File file) throws IOException {
         List<Visit> visits = new ArrayList<>();
+        Set<Integer> pigNumbers = new HashSet<>();
+        LocalDateTime minVisit = null, maxVisit = null;
+        int rowCount = 0;
 
         DateTimeFormatter dtFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH.mm", Locale.ENGLISH);
 
@@ -80,11 +90,33 @@ public class ImportService {
 
                 int feedIntakeG = Integer.parseInt(parts[idxFeedIntake].trim());
 
-                Visit visit = new Visit(0, animalNumber, responder, reportId, location, visitTime, durationSec,
+                Visit visit = new Visit(0, animalNumber, responder, -1, location, visitTime, durationSec,
                         weightG != null ? weightG : 0, feedIntakeG);
 
                 visits.add(visit);
+
+                pigNumbers.add(animalNumber);
+
+                if (minVisit == null || visitTime.isBefore(minVisit))
+                    minVisit = visitTime;
+                if (maxVisit == null || visitTime.isAfter(maxVisit))
+                    maxVisit = visitTime;
+
+                rowCount++;
             }
+        }
+
+        int reportId;
+
+        try {
+            reportId = ReportImportService.createReport(minVisit, maxVisit, rowCount, pigNumbers.size(),
+                    Session.getCurrentUser().id());
+        } catch (SQLException e) {
+            throw new IOException("Failed to create report in database", e);
+        }
+
+        for (int i = 0; i < visits.size(); ++i) {
+            visits.set(i, visits.get(i).withReportId(reportId));
         }
 
         try {
@@ -93,7 +125,19 @@ public class ImportService {
             throw new IOException("Failed to insert batch into database", e);
         }
 
-        return visits;
+        try {
+            AnimalSyncService.syncAnimalData(visits);
+        } catch (Exception e) {
+            throw new IOException("Failed to sync animal data", e);
+        }
+
+        try {
+            ReportDAO.updateStatus(reportId, Report.Status.COMPLETE);
+        } catch (SQLException e) {
+            throw new IOException("Failed to mark report as completed", e);
+        }
+
+        return reportId;
     }
 
 }
