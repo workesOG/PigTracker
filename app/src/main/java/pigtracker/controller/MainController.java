@@ -3,6 +3,7 @@ package pigtracker.controller;
 import javafx.fxml.FXML;
 import pigtracker.Main;
 import pigtracker.service.UserService;
+import pigtracker.util.AppContext;
 import pigtracker.util.Session;
 
 import javafx.stage.FileChooser;
@@ -41,7 +42,9 @@ public class MainController {
 
         if (selectedFile != null) {
             try {
-                ImportService.importFromCSV(selectedFile);
+                ImportService.importFromCSV(selectedFile, () -> {
+                    AppContext.getReportsController().refreshReportList();
+                });
             } catch (IOException e) {
                 e.printStackTrace();
                 // TODO: Show alert dialogue

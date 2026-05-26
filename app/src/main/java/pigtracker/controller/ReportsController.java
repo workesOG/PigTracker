@@ -7,6 +7,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.layout.AnchorPane;
 import pigtracker.model.Report;
 import pigtracker.model.ReportMetrics;
+import pigtracker.util.AppContext;
 import pigtracker.dao.ReportDAO;
 import javafx.fxml.FXMLLoader;
 import java.io.IOException;
@@ -50,17 +51,7 @@ public class ReportsController {
         }
     }
 
-    @FXML
-    public void initialize() {
-        refreshReportList();
-        reportList.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
-            if (newSelection != null) {
-                loadReportDetailView(newSelection);
-            }
-        });
-    }
-
-    private void refreshReportList() {
+    public void refreshReportList() {
         try {
             List<Report> reports = ReportDAO.getAllCompleted();
             reportList.getItems().setAll(reports);
@@ -68,5 +59,16 @@ public class ReportsController {
             e.printStackTrace();
             reportList.getItems().setAll(Report.getReportListErrorReport());
         }
+    }
+    
+    @FXML
+    public void initialize() {
+        AppContext.setReportsController(this);
+        refreshReportList();
+        reportList.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            if (newSelection != null) {
+                loadReportDetailView(newSelection);
+            }
+        });
     }
 }
