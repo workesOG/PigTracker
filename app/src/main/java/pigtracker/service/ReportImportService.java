@@ -72,10 +72,21 @@ public class ReportImportService {
         meanMedians.add(new MeanMedianMetric("Feed/Day (kg)", MathUtil.mean(feedPerDayList),
                 MathUtil.median(feedPerDayList), DisplayType.DECIMAL));
 
-        // 5. Visits per Pig
-        List<Double> visitsPerPigList = visitsByAnimal.values().stream().map(list -> (double)list.size()).toList();
-        meanMedians.add(new MeanMedianMetric("Visits/Pig", MathUtil.mean(visitsPerPigList),
-                MathUtil.median(visitsPerPigList), DisplayType.DECIMAL));
+        // 5. Visits per Pig per Day
+        List<Double> visitsPerPigPerDayList = visitsByAnimal.values().stream().filter(list -> !list.isEmpty())
+                .map(list -> {
+                    int visitCount = list.size();
+                    LocalDateTime firstVisit = list.stream().map(Visit::visitTime).min(LocalDateTime::compareTo).get();
+                    LocalDateTime lastVisit = list.stream().map(Visit::visitTime).max(LocalDateTime::compareTo).get();
+                    long daysActive = java.time.Duration
+                            .between(firstVisit.toLocalDate().atStartOfDay(), lastVisit.toLocalDate().atStartOfDay())
+                            .toDays() + 1;
+                    if (daysActive <= 0)
+                        daysActive = 1;
+                    return visitCount / (double)daysActive;
+                }).toList();
+        meanMedians.add(new MeanMedianMetric("Visits/Pig/Day", MathUtil.mean(visitsPerPigPerDayList),
+                MathUtil.median(visitsPerPigPerDayList), DisplayType.DECIMAL));
 
         // 6. Visit Duration (seconds)
         List<Double> visitDurationList = visits.stream().map(v -> (double)v.durationSec()).toList();
