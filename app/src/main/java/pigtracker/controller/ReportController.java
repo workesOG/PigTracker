@@ -4,6 +4,8 @@ package pigtracker.controller;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import pigtracker.controller.components.MeanMedianInfoPanelController;
 import pigtracker.controller.components.TopThreePigsInfoPanelController;
@@ -59,12 +61,13 @@ public class ReportController {
     @FXML
     private MeanMedianInfoPanelController visitLengthMeanAndMedianValuesPanelController;
 
-    public void setMetadata(String reportNumber, String importDate, String period, String dataRows, String numPigs) {
-        reportNumberLabel.setText(reportNumber);
-        importDateLabel.setText(importDate);
-        periodLabel.setText(period);
-        dataRowsLabel.setText(dataRows);
-        numPigsLabel.setText(numPigs);
+    public void setMetadata(int reportNumber, LocalDateTime importDate, LocalDateTime periodStart,
+            LocalDateTime periodEnd, int dataRows, int numPigs, int creatorUserID) {
+        reportNumberLabel.setText("Report #" + String.valueOf(reportNumber));
+        importDateLabel.setText(importDate.toString());
+        periodLabel.setText(periodStart.toString() + " - " + periodEnd.toString());
+        dataRowsLabel.setText(String.valueOf(dataRows));
+        numPigsLabel.setText(String.valueOf(numPigs));
     }
 
     public void setTopPigPanels(List<TopThreePigs> panels) {
