@@ -80,9 +80,7 @@ GO
 CREATE TABLE Visits (
     id            INT IDENTITY(1,1) PRIMARY KEY,
     animal_number INT          NOT NULL,
-        CONSTRAINT FK_Visits_animal FOREIGN KEY REFERENCES Animals(animal_number),
-    report_id     INT          NOT NULL
-        CONSTRAINT FK_Visits_report_id FOREIGN KEY REFERENCES Reports(id),
+    report_id     INT          NOT NULL,
     responder     VARCHAR(20)  NOT NULL,
     location      INT          NOT NULL,
     visit_time    DATETIME2(0) NOT NULL,
