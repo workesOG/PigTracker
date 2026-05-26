@@ -15,9 +15,9 @@ public class MeanMedianInfoPanelController {
     @FXML
     private Label medianLabel;
 
-    public void setData(String metric, double mean, double median) {
+    public void setData(String metric, String meanString, String medianString) {
         metricLabel.setText(metric);
-        meanLabel.setText(String.format("Mean: %.2f", mean));
-        medianLabel.setText(String.format("Median: %.2f", median));
+        meanLabel.setText(meanString);
+        medianLabel.setText(medianString);
     }
 }

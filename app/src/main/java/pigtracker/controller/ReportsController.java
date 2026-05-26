@@ -6,6 +6,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.AnchorPane;
 import pigtracker.model.Report;
+import pigtracker.model.ReportMetrics;
 import pigtracker.dao.ReportDAO;
 import javafx.fxml.FXMLLoader;
 import java.io.IOException;
@@ -29,8 +30,14 @@ public class ReportsController {
 
             controller.setMetadata(report.id(), report.createdAt(), report.importStart(), report.importEnd(),
                     report.rowCount(), report.pigCount(), report.createdBy());
-            // controller.setMeanMedianPanels(report.meanMedianPanels());
-            // controller.setTopPigPanels(report.topPigPanels());
+
+            try {
+                ReportMetrics metrics = pigtracker.service.ReportImportService.generateReportData(report);
+                controller.setMeanMedianPanels(metrics.meanMedian());
+                controller.setTopPigPanels(metrics.topThree());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
             reportContainer.getChildren().clear();
             reportContainer.getChildren().add(reportPane);
@@ -46,6 +53,11 @@ public class ReportsController {
     @FXML
     public void initialize() {
         refreshReportList();
+        reportList.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            if (newSelection != null) {
+                loadReportDetailView(newSelection);
+            }
+        });
     }
 
     private void refreshReportList() {

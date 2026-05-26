@@ -4,6 +4,8 @@ package pigtracker.model;
 
 import java.time.LocalDateTime;
 
+import pigtracker.util.DateFormattingUtil;
+
 public record Report(int id, LocalDateTime importStart, LocalDateTime importEnd, int rowCount, int pigCount,
         Status status, int createdBy, LocalDateTime createdAt) {
 
@@ -25,6 +27,6 @@ public record Report(int id, LocalDateTime importStart, LocalDateTime importEnd,
         if (id == -1) {
             return "Error fetching reports";
         }
-        return "Report #" + id + " - " + createdAt.toString();
+        return "Report #" + id + " - " + createdAt.format(DateFormattingUtil.dateTimeFormatterNoSeconds);
     }
 }

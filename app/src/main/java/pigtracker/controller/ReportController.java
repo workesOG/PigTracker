@@ -11,6 +11,7 @@ import pigtracker.controller.components.MeanMedianInfoPanelController;
 import pigtracker.controller.components.TopThreePigsInfoPanelController;
 import pigtracker.model.MeanMedianMetric;
 import pigtracker.model.TopThreePigs;
+import pigtracker.util.DateFormattingUtil;
 
 public class ReportController {
     @FXML
@@ -63,9 +64,12 @@ public class ReportController {
 
     public void setMetadata(int reportNumber, LocalDateTime importDate, LocalDateTime periodStart,
             LocalDateTime periodEnd, int dataRows, int numPigs, int creatorUserID) {
-        reportNumberLabel.setText("Report #" + String.valueOf(reportNumber));
-        importDateLabel.setText(importDate.toString());
-        periodLabel.setText(periodStart.toString() + " - " + periodEnd.toString());
+        reportNumberLabel.setText("Report #" + reportNumber);
+
+        importDateLabel.setText(importDate.format(DateFormattingUtil.dateTimeFormatterNoSeconds));
+        periodLabel.setText(periodStart.format(DateFormattingUtil.dateFormatter) + " - "
+                + periodEnd.format(DateFormattingUtil.dateFormatter));
+
         dataRowsLabel.setText(String.valueOf(dataRows));
         numPigsLabel.setText(String.valueOf(numPigs));
     }
@@ -81,7 +85,7 @@ public class ReportController {
         for (int i = 0; i < controllers.length && i < panels.size(); i++) {
             var data = panels.get(i);
             if (data != null && controllers[i] != null) {
-                controllers[i].setData(data.metric(), data.pigNumbers(), data.pigValues());
+                controllers[i].setData(data.metric(), data.pigNumbers(), data.getDisplayStrings());
             }
         }
     }
@@ -99,7 +103,7 @@ public class ReportController {
         for (int i = 0; i < controllers.length && i < panels.size(); i++) {
             var data = panels.get(i);
             if (data != null && controllers[i] != null) {
-                controllers[i].setData(data.metric(), data.mean(), data.median());
+                controllers[i].setData(data.metric(), data.getMeanDisplayString(), data.getMedianDisplayString());
             }
         }
     }

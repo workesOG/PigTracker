@@ -27,17 +27,17 @@ public class TopThreePigsInfoPanelController {
     @FXML
     private Label pig3ValueLabel;
 
-    public void setData(String metric, int[] pigNumbers, double[] pigValues) {
+    public void setData(String metric, int[] pigNumbers, String[] pigValueStrings) {
         metricLabel.setText(metric);
 
-        if (pigNumbers.length == 3 && pigValues.length == 3) {
-            pig1Label.setText("Pig #" + pigNumbers[0] + ":");
-            pig2Label.setText("Pig #" + pigNumbers[1] + ":");
-            pig3Label.setText("Pig #" + pigNumbers[2] + ":");
+        if (pigNumbers.length == 3 && pigValueStrings.length == 3) {
+            pig1Label.setText("#" + pigNumbers[0] + ":");
+            pig2Label.setText("#" + pigNumbers[1] + ":");
+            pig3Label.setText("#" + pigNumbers[2] + ":");
 
-            pig1ValueLabel.setText(String.format("%.2f", pigValues[0]));
-            pig2ValueLabel.setText(String.format("%.2f", pigValues[1]));
-            pig3ValueLabel.setText(String.format("%.2f", pigValues[2]));
+            pig1ValueLabel.setText(pigValueStrings[0]);
+            pig2ValueLabel.setText(pigValueStrings[1]);
+            pig3ValueLabel.setText(pigValueStrings[2]);
         }
     }
 }
