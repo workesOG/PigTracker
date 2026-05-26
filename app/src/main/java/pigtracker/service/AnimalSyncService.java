@@ -20,15 +20,19 @@ public class AnimalSyncService {
 
         for (Map.Entry<Integer, List<Visit>> entry : visitsByAnimal.entrySet()) {
             int animalNumber = entry.getKey();
+            List<Visit> importedForAnimal = entry.getValue();
             try {
-                // 1. Get all visits for this animalNumber (now all present in DB after import)
-                List<Visit> allVisits = VisitDAO.findByAnimalNumber(animalNumber);
+                // 1. Get all existing visits for this animalNumber from DB
+                List<Visit> dbVisits = VisitDAO.findByAnimalNumber(animalNumber);
+                // 2. Combine with current import
+                List<Visit> allVisits = new ArrayList<>(dbVisits);
+                allVisits.addAll(importedForAnimal);
                 allVisits.sort(Comparator.comparing(Visit::visitTime));
 
-                // 2. Get or create Animal
+                // 3. Get or create Animal
                 Animal animal = findOrCreateAnimal(animalNumber, allVisits);
 
-                // 3. Calculate updated properties from allVisits, keeping creation data if
+                // 4. Calculate updated properties from allVisits, keeping creation data if
                 // present
                 Animal updated = buildUpdatedAnimal(animal, allVisits);
 
@@ -75,7 +79,8 @@ public class AnimalSyncService {
                 completedDays, startDay, base.createdAt());
     }
 
-    // For reports and dashboard: create animal representing an animal's state at the end of a
+    // For reports and dashboard: create animal representing an animal's state at
+    // the end of a
     // specific period (using only visitsInPeriod)
     public static Animal buildAnimalForPeriod(int animalNumber, List<Visit> visitsInPeriod) {
         if (visitsInPeriod == null || visitsInPeriod.isEmpty())

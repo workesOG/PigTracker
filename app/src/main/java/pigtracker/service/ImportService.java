@@ -109,6 +109,12 @@ public class ImportService {
         int reportId;
 
         try {
+            AnimalSyncService.syncAnimalData(visits);
+        } catch (Exception e) {
+            throw new IOException("Failed to sync animal data", e);
+        }
+
+        try {
             reportId = ReportImportService.createReport(minVisit, maxVisit, rowCount, pigNumbers.size(),
                     Session.getCurrentUser().id());
         } catch (SQLException e) {
@@ -126,17 +132,19 @@ public class ImportService {
         }
 
         try {
-            AnimalSyncService.syncAnimalData(visits);
-        } catch (Exception e) {
-            throw new IOException("Failed to sync animal data", e);
-        }
-
-        try {
             ReportDAO.updateStatus(reportId, Report.Status.COMPLETE);
         } catch (SQLException e) {
             throw new IOException("Failed to mark report as completed", e);
         }
 
+        return reportId;
+    }
+
+    public static int importFromCSV(File file, Runnable callback) throws IOException {
+        int reportId = importFromCSV(file);
+        if (callback != null) {
+            callback.run();
+        }
         return reportId;
     }
 
