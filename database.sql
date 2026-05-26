@@ -36,6 +36,9 @@ CREATE TABLE Reports (
     import_end   DATETIME2(0) NOT NULL,
     row_count    INT NOT NULL,
     pig_count    INT NOT NULL,
+    status       NVARCHAR(20) NOT NULL
+        CONSTRAINT DF_Reports_status DEFAULT 'IN_PROGRESS'
+        CONSTRAINT CK_Reports_status CHECK (status IN ('IN_PROGRESS', 'COMPLETE')),
     created_by   INT NOT NULL
         CONSTRAINT FK_Reports_created_by FOREIGN KEY REFERENCES Users(id),
     created_at   DATETIME2(0) NOT NULL
