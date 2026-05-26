@@ -121,7 +121,7 @@
                                     </HBox>
                                     <VBox spacing="2.0" styleClass="indented-card-content" VBox.vgrow="ALWAYS">
                                        <children>
-                                          <AreaChart VBox.vgrow="ALWAYS">
+                                          <AreaChart fx:id="activityDensityGraph" VBox.vgrow="ALWAYS">
                                             <xAxis>
                                               <CategoryAxis side="BOTTOM" />
                                             </xAxis>

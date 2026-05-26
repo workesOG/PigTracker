@@ -3,6 +3,9 @@
 package pigtracker.controller;
 
 import javafx.fxml.FXML;
+import javafx.scene.chart.AreaChart;
+import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.Label;
 
 import java.time.LocalDateTime;
@@ -62,6 +65,9 @@ public class ReportController {
     @FXML
     private MeanMedianInfoPanelController visitLengthMeanAndMedianValuesPanelController;
 
+    @FXML
+    private AreaChart<String, Number> activityDensityGraph;
+
     public void setMetadata(int reportNumber, LocalDateTime importDate, LocalDateTime periodStart,
             LocalDateTime periodEnd, int dataRows, int numPigs, int creatorUserID) {
         reportNumberLabel.setText("Report #" + reportNumber);
@@ -106,5 +112,26 @@ public class ReportController {
                 controllers[i].setData(data.metric(), data.getMeanDisplayString(), data.getMedianDisplayString());
             }
         }
+    }
+
+    public void setActivityDensityGraph(List<Integer> activityByHour) {
+        activityDensityGraph.setLegendVisible(false);
+
+        CategoryAxis xAxis = (CategoryAxis)activityDensityGraph.getXAxis();
+        xAxis.setGapStartAndEnd(false);
+        xAxis.setStartMargin(0);
+        xAxis.setEndMargin(0);
+
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+
+        for (int hour = 0; hour < activityByHour.size(); hour++) {
+            String hourLabel = String.format("%02d-%02d", hour, (hour + 1) % 24);
+            series.getData().add(new XYChart.Data<>(hourLabel, activityByHour.get(hour)));
+        }
+
+        activityDensityGraph.getData().clear();
+        activityDensityGraph.getData().add(series);
+        activityDensityGraph.getXAxis().setLabel("Hour of Day");
+        activityDensityGraph.getYAxis().setLabel("Number of Visits");
     }
 }

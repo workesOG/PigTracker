@@ -36,6 +36,7 @@ public class ReportsController {
                 ReportMetrics metrics = pigtracker.service.ReportImportService.generateReportData(report);
                 controller.setMeanMedianPanels(metrics.meanMedian());
                 controller.setTopPigPanels(metrics.topThree());
+                controller.setActivityDensityGraph(metrics.activityByHour());
             } catch (Exception e) {
                 e.printStackTrace();
             }

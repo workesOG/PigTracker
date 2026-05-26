@@ -35,7 +35,8 @@ public class ReportImportService {
 
         List<MeanMedianMetric> meanMedians = calculateMeanMedianMetrics(animals, visits, visitsByAnimal);
         List<TopThreePigs> topThree = calculateTopThreePigs(animals, visits, visitsByAnimal);
-        return new ReportMetrics(meanMedians, topThree);
+        List<Integer> activityByHour = calculateActivityByHour(visits);
+        return new ReportMetrics(meanMedians, topThree, activityByHour);
     }
 
     public static int createReport(LocalDateTime importStart, LocalDateTime importEnd, int rowCount, int pigCount,
@@ -133,5 +134,15 @@ public class ReportImportService {
                 topMostVisits.stream().mapToDouble(e -> (double)e.getValue().size()).toArray(), DisplayType.INT));
 
         return topThree;
+    }
+
+    private static List<Integer> calculateActivityByHour(List<Visit> visits) {
+        // Prepare a list of 24 zeros (for each hour)
+        List<Integer> activityByHour = new ArrayList<>(java.util.Collections.nCopies(24, 0));
+        for (Visit visit : visits) {
+            int hour = visit.visitTime().getHour(); // get hour (0-23)
+            activityByHour.set(hour, activityByHour.get(hour) + 1);
+        }
+        return activityByHour;
     }
 }
