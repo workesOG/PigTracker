@@ -13,7 +13,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="722.0" prefWidth="898.0" stylesheets="@../styles/app.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pigtracker.controller.SpecificDataController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="722.0" prefWidth="948.0" stylesheets="@../styles/app.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pigtracker.controller.SpecificDataController">
    <children>
       <VBox prefHeight="200.0" prefWidth="100.0" spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <padding>
@@ -29,7 +29,7 @@
                         <TextField fx:id="searchTextField" prefWidth="140.0" />
                         <HBox alignment="CENTER">
                            <children>
-                              <Button fx:id="searchButton" alignment="CENTER" mnemonicParsing="false" text="Search" />
+                              <Button fx:id="searchButton" alignment="CENTER" mnemonicParsing="false" onAction="#applyAllFiltersAndUpdate" text="Search" />
                            </children>
                         </HBox>
                      </children>
@@ -72,7 +72,7 @@
                </children>
             </HBox>
             <Label styleClass="section-label" text="Data" />
-            <TableView prefHeight="10000.0" prefWidth="200.0">
+            <TableView fx:id="tableView" prefHeight="10000.0" prefWidth="200.0">
               <columns>
                 <TableColumn prefWidth="75.0" text="C1" />
                 <TableColumn prefWidth="75.0" text="C2" />

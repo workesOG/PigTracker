@@ -28,11 +28,16 @@ public class FilterChipContainerController {
     private Button addFilterButton;
 
     private ArrayList<MetricOption> availableMetrics;
+    private Runnable filtersChangedListener;
 
     private final List<FilterChipController> filters = new ArrayList<>();
 
     public void setMetrics(ArrayList<MetricOption> metrics) {
         availableMetrics = metrics;
+    }
+
+    public void setOnFiltersChanged(Runnable listener) {
+        this.filtersChangedListener = listener;
     }
 
     @FXML
@@ -76,6 +81,8 @@ public class FilterChipContainerController {
 
             filters.add(controller);
 
+            if (filtersChangedListener != null)
+                filtersChangedListener.run();
             return controller;
 
         } catch (IOException e) {
@@ -89,6 +96,8 @@ public class FilterChipContainerController {
         container.getChildren().remove(chip);
 
         filters.remove(controller);
+        if (filtersChangedListener != null)
+            filtersChangedListener.run();
     }
 
     public List<FilterChipController> getFilters() {

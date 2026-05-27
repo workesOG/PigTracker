@@ -28,6 +28,7 @@ import pigtracker.model.KpiMetrics;
 import pigtracker.model.PopulationDistributionGraphMetrics;
 import pigtracker.service.DashboardCreationService;
 import pigtracker.service.GroupHandlingService;
+import pigtracker.util.AppContext;
 
 public class DashboardController {
     @FXML
@@ -67,7 +68,7 @@ public class DashboardController {
 
     @FXML
     public void initialize() throws Exception {
-        pigtracker.util.AppContext.setDashboardController(this);
+        AppContext.setDashboardController(this);
         setupPopulationDistributionGraphSection();
         setupHistoricalImportGraphSection();
         setGroup(GroupHandlingService.getFirstGroup());

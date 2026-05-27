@@ -12,6 +12,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import pigtracker.controller.components.MeanMedianInfoPanelController;
 import pigtracker.controller.components.TopThreePigsInfoPanelController;
+import pigtracker.dao.GroupDAO;
+import pigtracker.model.Group;
 import pigtracker.model.MeanMedianMetric;
 import pigtracker.model.TopThreePigs;
 import pigtracker.util.DateFormattingUtil;
@@ -19,6 +21,9 @@ import pigtracker.util.DateFormattingUtil;
 public class ReportController {
     @FXML
     private Label reportNumberLabel;
+
+    @FXML
+    private Label groupNameLabel;
 
     @FXML
     private Label importDateLabel;
@@ -68,9 +73,20 @@ public class ReportController {
     @FXML
     private AreaChart<String, Number> activityDensityGraph;
 
-    public void setMetadata(int reportNumber, LocalDateTime importDate, LocalDateTime periodStart,
+    public void setMetadata(int reportNumber, int groupId, LocalDateTime importDate, LocalDateTime periodStart,
             LocalDateTime periodEnd, int dataRows, int numPigs, int creatorUserID) {
         reportNumberLabel.setText("Report #" + reportNumber);
+
+        try {
+            Group group = GroupDAO.findById(groupId).orElse(null);
+            if (group != null) {
+                groupNameLabel.setText(group.name());
+            } else {
+                throw new IllegalArgumentException("Group with ID " + groupId + " not found.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         importDateLabel.setText(importDate.format(DateFormattingUtil.dateTimeFormatterNoSeconds));
         periodLabel.setText(periodStart.format(DateFormattingUtil.dateFormatter) + " - "

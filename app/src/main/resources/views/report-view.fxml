@@ -14,9 +14,9 @@
    <children>
       <VBox prefHeight="200.0" prefWidth="100.0" spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
-            <HBox prefHeight="160.0" prefWidth="200.0" spacing="10.0">
+            <HBox prefHeight="180.0" prefWidth="200.0" spacing="10.0">
                <children>
-                  <VBox prefHeight="160.0" prefWidth="300.0" styleClass="indented-card">
+                  <VBox prefHeight="200.0" prefWidth="300.0" styleClass="indented-card">
                      <children>
                         <HBox prefHeight="35.0" prefWidth="100.0" styleClass="indented-card-header">
                            <children>
@@ -30,6 +30,7 @@
                                  <children>
                                     <VBox>
                                        <children>
+                                          <Label text="Group:" />
                                           <Label text="Imported:" />
                                           <Label text="Period:" />
                                           <Label text="Data Rows:" />
@@ -38,6 +39,7 @@
                                     </VBox>
                                     <VBox HBox.hgrow="ALWAYS">
                                        <children>
+                                          <Label fx:id="groupNameLabel" text="xxxx" />
                                           <Label fx:id="importDateLabel" text="xx/xx/xxxx" />
                                           <Label fx:id="periodLabel" text="xx/xx/xxxx - xx/xx/xxxx" />
                                           <Label fx:id="dataRowsLabel" text="xxxx" />
@@ -50,7 +52,7 @@
                         </VBox>
                      </children>
                   </VBox>
-                  <VBox prefHeight="160.0" prefWidth="300.0" styleClass="indented-card" HBox.hgrow="ALWAYS">
+                  <VBox prefHeight="200.0" prefWidth="300.0" styleClass="indented-card" HBox.hgrow="ALWAYS">
                      <children>
                         <HBox prefHeight="35.0" prefWidth="100.0" styleClass="indented-card-header">
                            <children>

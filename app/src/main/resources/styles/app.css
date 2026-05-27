@@ -324,3 +324,7 @@
     -fx-border-radius:
         0 3 3 0;
 }
+
+.invalid-field {
+    -fx-text-fill: red;
+}

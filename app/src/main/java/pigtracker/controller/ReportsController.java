@@ -29,8 +29,8 @@ public class ReportsController {
             AnchorPane reportPane = loader.load();
             ReportController controller = loader.getController();
 
-            controller.setMetadata(report.id(), report.createdAt(), report.importStart(), report.importEnd(),
-                    report.rowCount(), report.pigCount(), report.createdBy());
+            controller.setMetadata(report.id(), report.groupId(), report.createdAt(), report.importStart(),
+                    report.importEnd(), report.rowCount(), report.pigCount(), report.createdBy());
 
             try {
                 ReportMetrics metrics = pigtracker.service.ReportImportService.generateReportData(report);
@@ -61,7 +61,7 @@ public class ReportsController {
             reportList.getItems().setAll(Report.getReportListErrorReport());
         }
     }
-    
+
     @FXML
     public void initialize() {
         AppContext.setReportsController(this);
