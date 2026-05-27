@@ -3,6 +3,7 @@
 package pigtracker.service;
 
 import pigtracker.dao.VisitDAO;
+import pigtracker.model.Report;
 import pigtracker.model.Visit;
 
 import java.io.BufferedWriter;
@@ -11,6 +12,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -24,8 +26,28 @@ public class ExportService {
     private static final DateTimeFormatter DT_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH.mm",
             Locale.ENGLISH);
 
+    // Builds the visit list from every visit in the given reports and writes it to a CSV file in the PPT import format. Returns the number of visit rows written (excluding the header).
+    public static int exportToCSV(File file, List<Report> reports) throws IOException {
+        return writeVisits(file, collectVisits(reports));
+    }
+
+    // Gathers every visit belonging to the given reports, oldest first within each report.
+    private static List<Visit> collectVisits(List<Report> reports) throws IOException {
+        List<Visit> visits = new ArrayList<>();
+
+        try {
+            for (Report report : reports) {
+                visits.addAll(VisitDAO.findByReportId(report.id()));
+            }
+        } catch (SQLException e) {
+            throw new IOException("Failed to load report visits for export", e);
+        }
+
+        return visits;
+    }
+
     // Writes the given visits to a CSV file in the PPT import format. Returns the number of visit rows written (excluding the header).
-    public static int exportToCSV(File file, List<Visit> visits) throws IOException {
+    static int writeVisits(File file, List<Visit> visits) throws IOException {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
             bw.write(HEADER);
             bw.newLine();
@@ -37,24 +59,6 @@ public class ExportService {
         }
 
         return visits.size();
-    }
-
-    // Exports every visit in the database.
-    public static int exportAllToCSV(File file) throws IOException {
-        try {
-            return exportToCSV(file, VisitDAO.getAll());
-        } catch (SQLException e) {
-            throw new IOException("Failed to load visits for export", e);
-        }
-    }
-
-    // Exports all visits belonging to one report (i.e. one prior import).
-    public static int exportReportToCSV(File file, int reportId) throws IOException {
-        try {
-            return exportToCSV(file, VisitDAO.findByReportId(reportId));
-        } catch (SQLException e) {
-            throw new IOException("Failed to load report visits for export", e);
-        }
     }
 
     // Builds one CSV line from a visit. A missing weight is written as an empty field, mirroring how the PPT machine omits weight when it could not weigh the pig during a visit.
