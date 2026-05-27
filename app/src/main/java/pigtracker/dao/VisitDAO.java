@@ -34,8 +34,7 @@ public final class VisitDAO {
         }
     }
 
-    // Inserts many visits in one transaction. Used when importing a PPT visit
-    // file.
+    // Inserts many visits in one transaction. Used when importing a PPT visit file.
     public static void insertBatch(List<Visit> visits) throws SQLException {
         String sql = "INSERT INTO Visits (animal_number, responder, report_id, location, visit_time, duration_sec, weight_g, feed_intake_g) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
@@ -57,8 +56,7 @@ public final class VisitDAO {
         }
     }
 
-    // Returns all visits for one animal (by responder), oldest first. Used to show
-    // its eating events.
+    // Returns all visits for one animal (by responder), oldest first. Used to show its eating events.
     public static List<Visit> findByResponder(String responder) throws SQLException {
         String sql = "SELECT id, animal_number, responder, report_id, location, visit_time, duration_sec, weight_g, feed_intake_g FROM Visits WHERE responder = ? ORDER BY visit_time";
         List<Visit> visits = new ArrayList<>();
@@ -128,8 +126,7 @@ public final class VisitDAO {
         return visits;
     }
 
-    // Deletes all visits for one animal (by responder); returns the number of rows
-    // removed.
+    // Deletes all visits for one animal (by responder); returns the number of rows removed.
     public static int deleteByResponder(String responder) throws SQLException {
         String sql = "DELETE FROM Visits WHERE responder = ?";
 

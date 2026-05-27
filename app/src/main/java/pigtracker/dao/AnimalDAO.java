@@ -141,8 +141,7 @@ public final class AnimalDAO {
         }
     }
 
-    // Binds the 14 insert/update columns (everything except id and created_at) onto
-    // the statement.
+    // Binds the 14 insert/update columns (everything except id and created_at) onto the statement.
     private static void bindAnimal(PreparedStatement ps, Animal a) throws SQLException {
         ps.setInt(1, a.animalNumber());
         ps.setString(2, a.responder());

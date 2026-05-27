@@ -142,8 +142,7 @@ public final class ReportDAO {
         }
     }
 
-    // Binds the five insert columns (everything except id and created_at) onto the
-    // statement.
+    // Binds the five insert columns (everything except id and created_at) onto the statement.
     private static void bindReport(PreparedStatement ps, Report r) throws SQLException {
         ps.setInt(1, r.groupId()); // ADD FOR group_id
         ps.setObject(2, r.importStart());
