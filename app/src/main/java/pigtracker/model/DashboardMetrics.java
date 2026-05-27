@@ -2,5 +2,6 @@
 
 package pigtracker.model;
 
-public record DashboardMetrics(double avgWeight, double avgFeed, double avgFcr, double weightChangePct,
-        double feedChangePct, double fcrChangePct, int population, double populationChangePct) {}
+public record DashboardMetrics(KpiMetrics weight, KpiMetrics feed, KpiMetrics fcr, KpiMetrics population,
+                PopulationDistributionGraphMetrics populationDistribution,
+                HistoricalImportComparisonMetrics historicalImportComparison) {}

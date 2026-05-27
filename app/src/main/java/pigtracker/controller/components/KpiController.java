@@ -22,18 +22,17 @@ public class KpiController {
     private Label trendLabel;
 
     @FXML
+    private Label descriptionLabel;
+
+    @FXML
     private ImageView trendIcon;
 
     @FXML
-    private LineChart<?, ?> sparklineChart;
+    private LineChart<String, Number> sparklineChart;
 
-    private final Image UP_IMAGE = new Image(
-            getClass().getResourceAsStream(
-                    "/images/upwards_64.png"));
+    private final Image UP_IMAGE = new Image(getClass().getResourceAsStream("/images/upwards_64.png"));
 
-    private final Image DOWN_IMAGE = new Image(
-            getClass().getResourceAsStream(
-                    "/images/downwards_64.png"));
+    private final Image DOWN_IMAGE = new Image(getClass().getResourceAsStream("/images/downwards_64.png"));
 
     public void setTitle(String title) {
         titleLabel.setText(title);
@@ -42,8 +41,7 @@ public class KpiController {
     public void setValue(double value, int decimals) {
 
         String format = "%." + decimals + "f";
-        valueLabel.setText(
-                String.format(format, value));
+        valueLabel.setText(String.format(format, value));
     }
 
     public void setUnit(String unit) {
@@ -51,8 +49,7 @@ public class KpiController {
     }
 
     public void setTrend(double percentChange) {
-        trendLabel.setText(
-                String.format("%+.1f%%", percentChange));
+        trendLabel.setText(String.format("%+.1f%%", percentChange));
 
         if (percentChange >= 0) {
             trendLabel.setStyle("-fx-text-fill: green;");
@@ -61,5 +58,13 @@ public class KpiController {
             trendLabel.setStyle("-fx-text-fill: red;");
             trendIcon.setImage(DOWN_IMAGE);
         }
+    }
+
+    public void setDescription(String description) {
+        descriptionLabel.setText(description);
+    }
+
+    public LineChart<String, Number> getSparklineChart() {
+        return sparklineChart;
     }
 }

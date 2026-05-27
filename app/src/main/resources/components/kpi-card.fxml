@@ -24,7 +24,7 @@
                               </HBox>
                               <VBox prefHeight="235.0" prefWidth="370.0" styleClass="indented-card-content">
                                  <children>
-                                    <Label prefHeight="18.0" prefWidth="382.0" style="-fx-alignment: CENTER;" text="Mean" />
+                                    <Label fx:id="descriptionLabel" prefHeight="18.0" prefWidth="382.0" style="-fx-alignment: CENTER;" text="Mean" />
                                     <HBox alignment="CENTER" prefHeight="28.0" prefWidth="260.0">
                                        <VBox.margin>
                                           <Insets left="50.0" right="50.0" />
@@ -55,7 +55,7 @@
                                           <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                                        </padding>
                                     </HBox>
-                                    <LineChart>
+                                    <LineChart fx:id="sparklineChart">
                                       <xAxis>
                                         <CategoryAxis side="BOTTOM" />
                                       </xAxis>

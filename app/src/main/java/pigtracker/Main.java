@@ -10,6 +10,7 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import pigtracker.dao.ConnectionDAO;
 import pigtracker.service.UserService;
+import pigtracker.util.AppContext;
 
 public class Main extends Application {
 
@@ -42,6 +43,10 @@ public class Main extends Application {
 
     public static void main(String[] args) {
         launch();
+    }
+
+    public static void onDashboardReady() throws Exception {
+        AppContext.getDashboardController().setDashboardMetrics();
     }
 
     private boolean hasSavedSession() {
