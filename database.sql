@@ -99,10 +99,11 @@ GO
 CREATE TABLE Visits (
     id            INT IDENTITY(1,1) PRIMARY KEY,
     animal_number INT          NOT NULL 
-        CONSTRAINT FK_Visits_AnimalNumber FOREIGN KEY REFERENCES Animals(animal_number),
+        CONSTRAINT FK_Visits_AnimalNumber FOREIGN KEY REFERENCES Animals(animal_number) ON UPDATE CASCADE,
     report_id     INT          NOT NULL 
         CONSTRAINT FK_Visits_ReportId FOREIGN KEY REFERENCES Reports(id),
-    responder     VARCHAR(20)  NOT NULL,
+    responder     VARCHAR(20)  NOT NULL
+        CONSTRAINT FK_Visits_Responder FOREIGN KEY REFERENCES Animals(responder) ON UPDATE CASCADE,
     location      INT          NOT NULL,
     visit_time    DATETIME2(0) NOT NULL,
     duration_sec  INT          NOT NULL,
