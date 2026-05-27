@@ -8,6 +8,8 @@ import pigtracker.util.Session;
 
 import javafx.stage.FileChooser;
 import pigtracker.service.ImportService;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,9 +47,18 @@ public class MainController {
                 ImportService.importFromCSV(selectedFile, () -> {
                     AppContext.getReportsController().refreshReportList();
                 });
+                Alert alert = new Alert(AlertType.INFORMATION);
+                alert.setTitle("Import Successful");
+                alert.setHeaderText(null);
+                alert.setContentText("The CSV import was completed successfully.");
+                alert.showAndWait();
             } catch (IOException e) {
                 e.printStackTrace();
-                // TODO: Show alert dialogue
+                Alert alert = new Alert(AlertType.ERROR);
+                alert.setTitle("Import Failed");
+                alert.setHeaderText("An error occurred during the CSV import.");
+                alert.setContentText(e.getMessage());
+                alert.showAndWait();
             }
         }
     }
