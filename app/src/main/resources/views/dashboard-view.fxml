@@ -6,6 +6,7 @@
 <?import javafx.scene.chart.BarChart?>
 <?import javafx.scene.chart.CategoryAxis?>
 <?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -21,7 +22,14 @@
          <children>
             <AnchorPane prefHeight="756.0" prefWidth="798.0">
                <children>
-                  <Label layoutX="51.0" layoutY="54.0" styleClass="section-label" text="KPI Cards" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0" />
+                  <HBox alignment="CENTER_LEFT" prefHeight="28.0" prefWidth="758.0" spacing="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
+                     <children>
+                        <Label styleClass="section-label" text="KPI Cards" />
+                        <Label text="Active Group:" HBox.hgrow="ALWAYS" />
+                        <Label fx:id="activeGroupLabel" text="#x" />
+                        <Button fx:id="setGroupButton" mnemonicParsing="false" onAction="#handleChangeGroup" text="Set Group" />
+                     </children>
+                  </HBox>
                   <VBox layoutX="20.0" layoutY="66.0" prefHeight="200.0" prefWidth="100.0" AnchorPane.bottomAnchor="90.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="90.0" />
                   <GridPane hgap="18.0" vgap="36.0" AnchorPane.bottomAnchor="90.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="90.0">
                     <columnConstraints>

@@ -1,10 +1,13 @@
 // Theis Thomsen
 package pigtracker.service;
 
+import pigtracker.dao.GroupDAO;
 import pigtracker.dao.ReportDAO;
 import pigtracker.dao.VisitDAO;
 import pigtracker.model.Visit;
 import pigtracker.model.Report;
+import pigtracker.model.Group;
+import pigtracker.util.AppContext;
 import pigtracker.util.Session;
 
 import java.io.BufferedReader;
@@ -110,7 +113,7 @@ public class ImportService {
         int reportId;
 
         try {
-            groupId = GroupCreationService.getOrCreateGroup(groupName);
+            groupId = GroupHandlingService.getOrCreateGroup(groupName);
         } catch (SQLException e) {
             throw new IOException("Failed to create group in database", e);
         }
@@ -140,8 +143,15 @@ public class ImportService {
 
         try {
             ReportDAO.updateStatus(reportId, Report.Status.COMPLETE);
+            GroupDAO.updateStatus(groupId, Group.CreationStatus.COMPLETE);
         } catch (SQLException e) {
-            throw new IOException("Failed to mark report as completed", e);
+            throw new IOException("Failed to mark report/group as completed", e);
+        }
+
+        try {
+            AppContext.getDashboardController().setAndUpdateDashboardIfEmpty();
+        } catch (SQLException e) {
+            throw new IOException("Failed to set dashboard", e);
         }
 
         return reportId;

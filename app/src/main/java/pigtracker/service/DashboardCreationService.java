@@ -55,8 +55,12 @@ public class DashboardCreationService {
         return new KpiMetrics(title, latest, decimals, unit, change, description, history);
     }
 
-    public static DashboardMetrics calculateDashboardMetrics() throws SQLException {
-        List<Report> completed = ReportDAO.getAllCompleted();
+    public static DashboardMetrics calculateDashboardMetrics(Integer groupId) throws SQLException {
+        if (groupId == null) {
+            return null;
+        }
+
+        List<Report> completed = ReportDAO.findCompletedByGroupId(groupId);
         if (completed.isEmpty())
             return null;
 
@@ -100,9 +104,13 @@ public class DashboardCreationService {
         return new DashboardMetrics(weightKpi, feedKpi, fcrKpi, populationKpi, null, null);
     }
 
-    public static PopulationDistributionGraphMetrics calculatePopulationDistributionMetrics(String metric)
-            throws SQLException {
-        List<Report> completed = ReportDAO.getAllCompleted();
+    public static PopulationDistributionGraphMetrics calculatePopulationDistributionMetrics(Integer groupId,
+            String metric) throws SQLException {
+        if (groupId == null) {
+            return null;
+        }
+
+        List<Report> completed = ReportDAO.findCompletedByGroupId(groupId);
         if (completed.isEmpty())
             return null;
 
@@ -149,9 +157,13 @@ public class DashboardCreationService {
         return new PopulationDistributionGraphMetrics(labels, binCounts);
     }
 
-    public static HistoricalImportComparisonMetrics calculateHistoricalImportComparisonMetrics(String metric,
-            String period) throws SQLException {
-        List<Report> completed = ReportDAO.getAllCompleted();
+    public static HistoricalImportComparisonMetrics calculateHistoricalImportComparisonMetrics(Integer groupId,
+            String metric, String period) throws SQLException {
+        if (groupId == null) {
+            return null;
+        }
+
+        List<Report> completed = ReportDAO.findCompletedByGroupId(groupId);
         if (completed.isEmpty())
             return new HistoricalImportComparisonMetrics(List.of(), List.of());
 

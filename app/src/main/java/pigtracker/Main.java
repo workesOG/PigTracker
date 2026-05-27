@@ -3,12 +3,14 @@
 package pigtracker;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import pigtracker.dao.ConnectionDAO;
+import pigtracker.service.DatabaseCleanupService;
 import pigtracker.service.UserService;
 import pigtracker.util.AppContext;
 
@@ -37,6 +39,13 @@ public class Main extends Application {
             System.out.println("Connected. Database: " + conn.getCatalog());
         } catch (Exception e) {
             System.out.println("FAILED to connect:");
+            e.printStackTrace();
+        }
+
+        try {
+            DatabaseCleanupService.cleanupInProgressGroupsAndReports();
+        } catch (SQLException e) {
+            System.out.println("FAILED to clean up database:");
             e.printStackTrace();
         }
     }

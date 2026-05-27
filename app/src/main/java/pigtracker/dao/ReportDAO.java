@@ -95,6 +95,22 @@ public final class ReportDAO {
         return reports;
     }
 
+    //Theis Thomsen
+    public static List<Report> findCompletedByGroupId(int groupId) throws SQLException {
+        String sql = "SELECT id, group_id, import_start, import_end, row_count, pig_count, status, created_by, created_at FROM Reports WHERE group_id = ? AND status = ? ORDER BY created_at DESC";
+        List<Report> reports = new ArrayList<>();
+        try (Connection conn = ConnectionDAO.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, groupId);
+            ps.setString(2, Report.Status.COMPLETE.name());
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    reports.add(mapRow(rs));
+                }
+            }
+        }
+        return reports;
+    }
+
     // Deletes the report with the given id; returns true if a row was removed.
     public static boolean delete(int id) throws SQLException {
         String sql = "DELETE FROM Reports WHERE id = ?";
@@ -103,6 +119,15 @@ public final class ReportDAO {
             ps.setInt(1, id);
 
             return ps.executeUpdate() > 0;
+        }
+    }
+
+    // Theis Thomsen
+    public static void deleteAllInProgress() throws SQLException {
+        String sql = "DELETE FROM Reports WHERE status = ?";
+        try (Connection conn = ConnectionDAO.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, Report.Status.IN_PROGRESS.name());
+            ps.executeUpdate();
         }
     }
 

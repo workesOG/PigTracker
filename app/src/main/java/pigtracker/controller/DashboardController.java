@@ -4,22 +4,38 @@ package pigtracker.controller;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import pigtracker.Main;
 import pigtracker.controller.components.KpiController;
 import pigtracker.controller.components.SegmentedToggleController;
+import pigtracker.dao.GroupDAO;
 import pigtracker.model.DashboardMetrics;
+import pigtracker.model.Group;
 import pigtracker.model.HistoricalImportComparisonMetrics;
 import pigtracker.model.KpiMetrics;
 import pigtracker.model.PopulationDistributionGraphMetrics;
 import pigtracker.service.DashboardCreationService;
+import pigtracker.service.GroupHandlingService;
 
 public class DashboardController {
+    @FXML
+    private Label activeGroupLabel;
+
+    @FXML
+    private Button setGroupButton;
+
     @FXML
     private KpiController fcrCardController;
 
@@ -47,25 +63,80 @@ public class DashboardController {
     @FXML
     private BarChart<String, Number> historicalImportComparisonGraph;
 
+    private Integer activeGroupId;
+
     @FXML
     public void initialize() throws Exception {
         pigtracker.util.AppContext.setDashboardController(this);
         setupPopulationDistributionGraphSection();
         setupHistoricalImportGraphSection();
+        setGroup(GroupHandlingService.getFirstGroup());
+        updateLabelCreationButton();
         Main.onDashboardReady();
     }
 
+    public void setGroup(Group group) {
+        if (group == null) {
+            activeGroupId = null;
+            activeGroupLabel.setText("No groups found in DB");
+            return;
+        }
+        activeGroupId = group.id();
+        activeGroupLabel.setText(String.format("#%s", group.name()));
+    }
+
+    public void updateLabelCreationButton() throws SQLException {
+        setGroupButton.setDisable(!GroupHandlingService.doesDatabaseHoldAtLeastTwoGroups());
+    }
+
+    @FXML
+    private void handleChangeGroup() {
+        try {
+            List<Group> groups = GroupDAO.getAll();
+            if (groups.isEmpty()) {
+                showInfoAlert("No groups available", "There are no groups to select.");
+                return;
+            }
+
+            Map<String, Group> nameToGroup = groups.stream().collect(Collectors.toMap(Group::name, g -> g));
+
+            ObservableList<String> groupNames = FXCollections.observableArrayList(nameToGroup.keySet());
+
+            String chosenGroupName = MenuSelectionWindowController.showAndWait(Main.getPrimaryStage(), "Select Group",
+                    groupNames);
+
+            if (chosenGroupName != null) {
+                Group selectedGroup = nameToGroup.get(chosenGroupName);
+                setGroup(selectedGroup);
+                setDashboardMetrics();
+                System.out.println("Selected group: " + selectedGroup);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            showErrorAlert("Error", "Could not fetch groups.", e.getMessage());
+        }
+    }
+
+    public void setAndUpdateDashboardIfEmpty() throws SQLException {
+        updateLabelCreationButton();
+        if (activeGroupId == null) {
+            setGroup(GroupHandlingService.getFirstGroup());
+            setDashboardMetrics();
+        }
+    }
+
     public void setDashboardMetrics() throws SQLException {
-        DashboardMetrics dashboardMetrics = DashboardCreationService.calculateDashboardMetrics();
+        DashboardMetrics dashboardMetrics = DashboardCreationService.calculateDashboardMetrics(activeGroupId);
 
         String pdgMetric = getPdgMetric();
         PopulationDistributionGraphMetrics pdgMetrics = DashboardCreationService
-                .calculatePopulationDistributionMetrics(pdgMetric);
+                .calculatePopulationDistributionMetrics(activeGroupId, pdgMetric);
 
         String hicMetric = getHicMetric();
         String hicPeriod = getHicPeriod();
         HistoricalImportComparisonMetrics hicMetrics = DashboardCreationService
-                .calculateHistoricalImportComparisonMetrics(hicMetric, hicPeriod);
+                .calculateHistoricalImportComparisonMetrics(activeGroupId, hicMetric, hicPeriod);
 
         if (dashboardMetrics == null) {
             setEmpty();
@@ -169,14 +240,14 @@ public class DashboardController {
 
     public void onDistributionGraphMetricChanged(String metric) throws SQLException {
         PopulationDistributionGraphMetrics pdgMetrics = DashboardCreationService
-                .calculatePopulationDistributionMetrics(metric);
+                .calculatePopulationDistributionMetrics(activeGroupId, metric);
 
         setPopulationDistributionGraph(pdgMetrics, metric);
     }
 
     public void onHistoricalGraphChanged(String metric, String period) throws SQLException {
         HistoricalImportComparisonMetrics metrics = DashboardCreationService
-                .calculateHistoricalImportComparisonMetrics(metric, period);
+                .calculateHistoricalImportComparisonMetrics(activeGroupId, metric, period);
 
         setHistoricalImportComparisonGraph(metrics);
     }
@@ -281,5 +352,21 @@ public class DashboardController {
 
     private String getHicPeriod() {
         return hicPeriodSegmentedToggleController.getSelected();
+    }
+
+    private void showInfoAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    private void showErrorAlert(String title, String header, String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(header);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }

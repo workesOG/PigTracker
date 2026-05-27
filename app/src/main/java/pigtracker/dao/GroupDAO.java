@@ -12,7 +12,7 @@ public final class GroupDAO {
     public static Group create(Group group) throws SQLException {
         String sql = "INSERT INTO Groups (name, creation_status) VALUES (?, ?)";
         try (Connection conn = ConnectionDAO.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, group.name());
             ps.setString(2, group.creationStatus().name());
             ps.executeUpdate();
@@ -26,8 +26,7 @@ public final class GroupDAO {
 
     public static Optional<Group> findById(int id) throws SQLException {
         String sql = "SELECT id, name, creation_status FROM Groups WHERE id = ?";
-        try (Connection conn = ConnectionDAO.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = ConnectionDAO.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next() ? Optional.of(mapRow(rs)) : Optional.empty();
@@ -37,8 +36,7 @@ public final class GroupDAO {
 
     public static Optional<Group> findByName(String name) throws SQLException {
         String sql = "SELECT id, name, creation_status FROM Groups WHERE name = ?";
-        try (Connection conn = ConnectionDAO.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = ConnectionDAO.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, name);
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next() ? Optional.of(mapRow(rs)) : Optional.empty();
@@ -50,8 +48,8 @@ public final class GroupDAO {
         String sql = "SELECT id, name, creation_status FROM Groups ORDER BY id";
         List<Group> groups = new ArrayList<>();
         try (Connection conn = ConnectionDAO.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 groups.add(mapRow(rs));
             }
@@ -61,8 +59,7 @@ public final class GroupDAO {
 
     public static boolean update(Group group) throws SQLException {
         String sql = "UPDATE Groups SET name = ?, creation_status = ? WHERE id = ?";
-        try (Connection conn = ConnectionDAO.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = ConnectionDAO.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, group.name());
             ps.setString(2, group.creationStatus().name());
             ps.setInt(3, group.id());
@@ -70,20 +67,33 @@ public final class GroupDAO {
         }
     }
 
+    public static void updateStatus(int groupId, Group.CreationStatus status) throws SQLException {
+        String sql = "UPDATE Groups SET creation_status = ? WHERE id = ?";
+        try (Connection conn = ConnectionDAO.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, status.name());
+            ps.setInt(2, groupId);
+            ps.executeUpdate();
+        }
+    }
+
     public static boolean delete(int id) throws SQLException {
         String sql = "DELETE FROM Groups WHERE id = ?";
-        try (Connection conn = ConnectionDAO.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = ConnectionDAO.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
             return ps.executeUpdate() > 0;
         }
     }
 
+    public static void deleteAllInProgress() throws SQLException {
+        String sql = "DELETE FROM Groups WHERE creation_status = ?";
+        try (Connection conn = ConnectionDAO.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, Group.CreationStatus.IN_PROGRESS.name());
+            ps.executeUpdate();
+        }
+    }
+
     private static Group mapRow(ResultSet rs) throws SQLException {
-        return new Group(
-            rs.getInt("id"),
-            rs.getString("name"),
-            Group.CreationStatus.valueOf(rs.getString("creation_status").trim().toUpperCase())
-        );
+        return new Group(rs.getInt("id"), rs.getString("name"),
+                Group.CreationStatus.valueOf(rs.getString("creation_status").trim().toUpperCase()));
     }
 }
