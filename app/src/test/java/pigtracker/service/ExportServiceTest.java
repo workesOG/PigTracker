@@ -18,13 +18,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class ExportServiceTest {
 
     @Test
-    void exportToCSVWritesHeaderAndRowsInImportFormat(@TempDir Path tempDir) throws IOException {
+    void writeVisitsWritesHeaderAndRowsInImportFormat(@TempDir Path tempDir) throws IOException {
         List<Visit> visits = List.of(
                 new Visit(0, 211863, "984000010111863", 0, 2, LocalDateTime.of(2026, 4, 8, 9, 14), 80, 95500, 5),
                 new Visit(0, 211863, "984000010111863", 0, 2, LocalDateTime.of(2026, 4, 9, 10, 31), 53, null, 13));
 
         File out = tempDir.resolve("export.csv").toFile();
-        int written = ExportService.exportToCSV(out, visits);
+        int written = ExportService.writeVisits(out, visits);
 
         assertEquals(2, written);
 
@@ -37,9 +37,9 @@ class ExportServiceTest {
     }
 
     @Test
-    void exportToCSVWritesOnlyHeaderForNoVisits(@TempDir Path tempDir) throws IOException {
+    void writeVisitsWritesOnlyHeaderForNoVisits(@TempDir Path tempDir) throws IOException {
         File out = tempDir.resolve("empty.csv").toFile();
-        int written = ExportService.exportToCSV(out, List.of());
+        int written = ExportService.writeVisits(out, List.of());
 
         assertEquals(0, written);
         List<String> lines = Files.readAllLines(out.toPath());
