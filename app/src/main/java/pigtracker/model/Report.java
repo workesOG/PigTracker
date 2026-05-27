@@ -6,20 +6,18 @@ import java.time.LocalDateTime;
 
 import pigtracker.util.DateFormattingUtil;
 
-public record Report(int id, LocalDateTime importStart, LocalDateTime importEnd, int rowCount, int pigCount,
-        Status status, int createdBy, LocalDateTime createdAt) {
-
+public record Report(int id, int groupId, LocalDateTime importStart, LocalDateTime importEnd, int rowCount,
+        int pigCount, Status status, int createdBy, LocalDateTime createdAt) {
     public enum Status {
         IN_PROGRESS, COMPLETE
     }
 
-    // Returns a copy of this report with the given id (used after insert).
     public Report withId(int newId) {
-        return new Report(newId, importStart, importEnd, rowCount, pigCount, status, createdBy, createdAt);
+        return new Report(newId, groupId, importStart, importEnd, rowCount, pigCount, status, createdBy, createdAt);
     }
 
     public static Report getReportListErrorReport() {
-        return new Report(-1, null, null, -1, -1, Report.Status.IN_PROGRESS, -1, null);
+        return new Report(-1, -1, null, null, -1, -1, Report.Status.IN_PROGRESS, -1, null);
     }
 
     @Override

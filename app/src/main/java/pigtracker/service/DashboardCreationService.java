@@ -194,7 +194,7 @@ public class DashboardCreationService {
         return new HistoricalImportComparisonMetrics(labels, percentChanges);
     }
 
-    private static List<Animal> buildAnimalsForPeriod(Map<Integer, List<Visit>> visitsByAnimal) {
+    private static List<Animal> buildAnimalsForPeriod(Map<Integer, List<Visit>> visitsByAnimal) throws SQLException {
         List<Animal> animals = new ArrayList<>();
         for (Map.Entry<Integer, List<Visit>> entry : visitsByAnimal.entrySet()) {
             Animal a = AnimalSyncService.buildAnimalForPeriod(entry.getKey(), entry.getValue());

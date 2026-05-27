@@ -25,7 +25,7 @@ public class ImportService {
     // CSV header columns (animal_number; responder; location; visit_time; duration;
     // "weight" or "weight (g)""; feed_intake)
 
-    public static int importFromCSV(File file) throws IOException {
+    public static int importFromCSV(File file, String groupName) throws IOException {
         List<Visit> visits = new ArrayList<>();
         Set<Integer> pigNumbers = new HashSet<>();
         LocalDateTime minVisit = null, maxVisit = null;
@@ -106,16 +106,23 @@ public class ImportService {
             }
         }
 
+        int groupId;
         int reportId;
 
         try {
-            AnimalSyncService.syncAnimalData(visits);
+            groupId = GroupCreationService.getOrCreateGroup(groupName);
+        } catch (SQLException e) {
+            throw new IOException("Failed to create group in database", e);
+        }
+
+        try {
+            AnimalSyncService.syncAnimalData(visits, groupId);
         } catch (Exception e) {
             throw new IOException("Failed to sync animal data", e);
         }
 
         try {
-            reportId = ReportImportService.createReport(minVisit, maxVisit, rowCount, pigNumbers.size(),
+            reportId = ReportImportService.createReport(groupId, minVisit, maxVisit, rowCount, pigNumbers.size(),
                     Session.getCurrentUser().id());
         } catch (SQLException e) {
             throw new IOException("Failed to create report in database", e);
@@ -140,8 +147,8 @@ public class ImportService {
         return reportId;
     }
 
-    public static int importFromCSV(File file, Runnable callback) throws IOException {
-        int reportId = importFromCSV(file);
+    public static int importFromCSV(File file, String groupName, Runnable callback) throws IOException {
+        int reportId = importFromCSV(file, groupName);
         if (callback != null) {
             callback.run();
         }

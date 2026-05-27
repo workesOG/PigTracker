@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import pigtracker.model.Animal;
 import pigtracker.model.Visit;
 
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,19 +14,18 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 class AnimalSyncServiceTest {
     @Test
-    void buildAnimalForPeriodReturnsNullForNullVisits() {
+    void buildAnimalForPeriodReturnsNullForNullVisits() throws SQLException {
         assertNull(AnimalSyncService.buildAnimalForPeriod(101, null));
     }
 
     @Test
-    void buildAnimalForPeriodReturnsNullForEmptyVisits() {
+    void buildAnimalForPeriodReturnsNullForEmptyVisits() throws SQLException {
         assertNull(AnimalSyncService.buildAnimalForPeriod(101, List.of()));
     }
 
     @Test
-    void buildAnimalForPeriodCalculatesDerivedAnimalMetrics() {
-        List<Visit> visits = List.of(
-                visit(LocalDateTime.of(2026, 5, 26, 14, 30), 54000, 3000),
+    void buildAnimalForPeriodCalculatesDerivedAnimalMetrics() throws SQLException {
+        List<Visit> visits = List.of(visit(LocalDateTime.of(2026, 5, 26, 14, 30), 54000, 3000),
                 visit(LocalDateTime.of(2026, 5, 25, 8, 15), 50000, 2000),
                 visit(LocalDateTime.of(2026, 5, 26, 9, 0), 52000, 2500));
 
@@ -49,9 +49,8 @@ class AnimalSyncServiceTest {
     }
 
     @Test
-    void buildAnimalForPeriodIgnoresZeroWeights() {
-        List<Visit> visits = List.of(
-                visit(LocalDateTime.of(2026, 5, 25, 8, 15), 0, 2000),
+    void buildAnimalForPeriodIgnoresZeroWeights() throws SQLException {
+        List<Visit> visits = List.of(visit(LocalDateTime.of(2026, 5, 25, 8, 15), 0, 2000),
                 visit(LocalDateTime.of(2026, 5, 25, 12, 0), 50000, 1000),
                 visit(LocalDateTime.of(2026, 5, 26, 14, 30), 0, 3000),
                 visit(LocalDateTime.of(2026, 5, 26, 9, 0), 53000, 2500));
@@ -66,9 +65,8 @@ class AnimalSyncServiceTest {
     }
 
     @Test
-    void buildAnimalForPeriodLeavesFcrNullWhenWeightGainIsMissing() {
-        List<Visit> visits = List.of(
-                visit(LocalDateTime.of(2026, 5, 25, 8, 15), 0, 2000),
+    void buildAnimalForPeriodLeavesFcrNullWhenWeightGainIsMissing() throws SQLException {
+        List<Visit> visits = List.of(visit(LocalDateTime.of(2026, 5, 25, 8, 15), 0, 2000),
                 visit(LocalDateTime.of(2026, 5, 26, 9, 0), 0, 2500));
 
         Animal animal = AnimalSyncService.buildAnimalForPeriod(101, visits);
@@ -81,13 +79,13 @@ class AnimalSyncServiceTest {
     }
 
     @Test
-    void buildAnimalForPeriodLeavesFcrNullWhenWeightGainIsZeroOrNegative() {
-        Animal zeroGain = AnimalSyncService.buildAnimalForPeriod(101, List.of(
-                visit(LocalDateTime.of(2026, 5, 25, 8, 15), 50000, 2000),
-                visit(LocalDateTime.of(2026, 5, 26, 9, 0), 50000, 2500)));
-        Animal negativeGain = AnimalSyncService.buildAnimalForPeriod(101, List.of(
-                visit(LocalDateTime.of(2026, 5, 25, 8, 15), 54000, 2000),
-                visit(LocalDateTime.of(2026, 5, 26, 9, 0), 50000, 2500)));
+    void buildAnimalForPeriodLeavesFcrNullWhenWeightGainIsZeroOrNegative() throws SQLException {
+        Animal zeroGain = AnimalSyncService.buildAnimalForPeriod(101,
+                List.of(visit(LocalDateTime.of(2026, 5, 25, 8, 15), 50000, 2000),
+                        visit(LocalDateTime.of(2026, 5, 26, 9, 0), 50000, 2500)));
+        Animal negativeGain = AnimalSyncService.buildAnimalForPeriod(101,
+                List.of(visit(LocalDateTime.of(2026, 5, 25, 8, 15), 54000, 2000),
+                        visit(LocalDateTime.of(2026, 5, 26, 9, 0), 50000, 2500)));
 
         assertEquals(0.0, zeroGain.weightGainKg(), 1e-9);
         assertNull(zeroGain.fcr());

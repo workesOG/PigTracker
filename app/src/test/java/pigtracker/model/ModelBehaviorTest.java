@@ -90,9 +90,8 @@ class ModelBehaviorTest {
 
     @Test
     void reportToStringFormatsCreatedAt() {
-        Report report = new Report(42, LocalDateTime.of(2026, 5, 1, 8, 0),
-                LocalDateTime.of(2026, 5, 2, 8, 0), 100, 12, Report.Status.COMPLETE, 7,
-                LocalDateTime.of(2026, 5, 26, 9, 7, 45));
+        Report report = new Report(42, 2, LocalDateTime.of(2026, 5, 1, 8, 0), LocalDateTime.of(2026, 5, 2, 8, 0), 100,
+                12, Report.Status.COMPLETE, 7, LocalDateTime.of(2026, 5, 26, 9, 7, 45));
 
         assertEquals("Report #42 - 2026-05-26 09:07", report.toString());
     }
@@ -116,8 +115,7 @@ class ModelBehaviorTest {
         int[] pigNumbers = { 101, 102, 103 };
         TopThreePigs decimal = new TopThreePigs("fcr", pigNumbers, new double[] { 1.234, 5.678 }, DisplayType.DECIMAL);
         TopThreePigs integer = new TopThreePigs("feed", pigNumbers, new double[] { 1.49, 1.5 }, DisplayType.INT);
-        TopThreePigs time = new TopThreePigs("duration", pigNumbers, new double[] { 61.4, 61.5 },
-                DisplayType.TIME);
+        TopThreePigs time = new TopThreePigs("duration", pigNumbers, new double[] { 61.4, 61.5 }, DisplayType.TIME);
 
         assertArrayEquals(new String[] { String.format("%.2f", 1.234), String.format("%.2f", 5.678) },
                 decimal.getDisplayStrings());
@@ -126,13 +124,11 @@ class ModelBehaviorTest {
     }
 
     private static Animal animal(int id, Animal.Status status) {
-        return new Animal(id, 101, "RFID-101", 7, status, "done",
-                LocalDateTime.of(2026, 5, 26, 10, 0), 2.5, 50.0, 12.0, 4.8, 54.8, 2,
-                LocalDate.of(2026, 5, 25), LocalDateTime.of(2026, 5, 24, 9, 0));
+        return new Animal(id, 101, "RFID-101", 2, 7, status, "done", LocalDateTime.of(2026, 5, 26, 10, 0), 2.5, 50.0,
+                12.0, 4.8, 54.8, 2, LocalDate.of(2026, 5, 25), LocalDateTime.of(2026, 5, 24, 9, 0));
     }
 
     private static Visit visit(int id, int reportId) {
-        return new Visit(id, 101, "RFID-101", reportId, 7, LocalDateTime.of(2026, 5, 26, 9, 7), 123, 51000,
-                1500);
+        return new Visit(id, 101, "RFID-101", reportId, 7, LocalDateTime.of(2026, 5, 26, 9, 7), 123, 51000, 1500);
     }
 }

@@ -27,15 +27,29 @@ CREATE TABLE Users (
 );
 GO
 
+DROP TABLE IF EXISTS Groups;
+GO
+
+CREATE TABLE Groups (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    name NVARCHAR(50) NOT NULL UNIQUE,
+    creation_status NVARCHAR(20) NOT NULL
+        CONSTRAINT DF_Groups_creation_status DEFAULT 'IN_PROGRESS'
+        CONSTRAINT CK_Groups_creation_status CHECK (creation_status IN ('IN_PROGRESS', 'COMPLETE'))
+);
+GO
+
 DROP TABLE IF EXISTS Reports;
 GO
 
 CREATE TABLE Reports (
     id           INT IDENTITY(1,1) PRIMARY KEY,
+    group_id     INT          NOT NULL
+        CONSTRAINT FK_Reports_group_id FOREIGN KEY REFERENCES Groups(id),
     import_start DATETIME2(0) NOT NULL,
     import_end   DATETIME2(0) NOT NULL,
-    row_count    INT NOT NULL,
-    pig_count    INT NOT NULL,
+    row_count    INT          NOT NULL,
+    pig_count    INT          NOT NULL,
     status       NVARCHAR(20) NOT NULL
         CONSTRAINT DF_Reports_status DEFAULT 'IN_PROGRESS'
         CONSTRAINT CK_Reports_status CHECK (status IN ('IN_PROGRESS', 'COMPLETE')),
@@ -53,6 +67,8 @@ CREATE TABLE Animals (
     id              INT IDENTITY(1,1) PRIMARY KEY,  
     animal_number   INT           NOT NULL,
     responder       VARCHAR(20)   NOT NULL,
+    group_id        INT           NOT NULL
+        CONSTRAINT FK_Animals_group_id FOREIGN KEY REFERENCES Groups(id),
     location        INT           NOT NULL,
     status          NVARCHAR(10)  NOT NULL
         CONSTRAINT DF_Animals_status DEFAULT 'ACTIVE'
@@ -82,8 +98,10 @@ GO
 
 CREATE TABLE Visits (
     id            INT IDENTITY(1,1) PRIMARY KEY,
-    animal_number INT          NOT NULL CONSTRAINT FK_Visits_AnimalNumber FOREIGN KEY REFERENCES Animals(animal_number),
-    report_id     INT          NOT NULL CONSTRAINT FK_Visits_ReportId FOREIGN KEY REFERENCES Reports(id),
+    animal_number INT          NOT NULL 
+        CONSTRAINT FK_Visits_AnimalNumber FOREIGN KEY REFERENCES Animals(animal_number),
+    report_id     INT          NOT NULL 
+        CONSTRAINT FK_Visits_ReportId FOREIGN KEY REFERENCES Reports(id),
     responder     VARCHAR(20)  NOT NULL,
     location      INT          NOT NULL,
     visit_time    DATETIME2(0) NOT NULL,

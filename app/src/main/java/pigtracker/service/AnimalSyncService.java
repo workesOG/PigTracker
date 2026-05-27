@@ -14,7 +14,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class AnimalSyncService {
-    public static void syncAnimalData(List<Visit> importedVisits) {
+    public static void syncAnimalData(List<Visit> importedVisits, int groupId) {
         Map<Integer, List<Visit>> visitsByAnimal = importedVisits.stream()
                 .collect(Collectors.groupingBy(Visit::animalNumber));
 
@@ -30,7 +30,7 @@ public class AnimalSyncService {
                 allVisits.sort(Comparator.comparing(Visit::visitTime));
 
                 // 3. Get or create Animal
-                Animal animal = findOrCreateAnimal(animalNumber, allVisits);
+                Animal animal = findOrCreateAnimal(animalNumber, allVisits, groupId);
 
                 // 4. Calculate updated properties from allVisits, keeping creation data if
                 // present
@@ -49,7 +49,7 @@ public class AnimalSyncService {
     }
 
     // Find animal in DB, or create a fresh Animal with blank ID
-    private static Animal findOrCreateAnimal(int animalNumber, List<Visit> allVisits) throws SQLException {
+    private static Animal findOrCreateAnimal(int animalNumber, List<Visit> allVisits, int groupId) throws SQLException {
         Optional<Animal> existing = AnimalDAO.findByAnimalNumber(animalNumber);
         if (existing.isPresent()) {
             return existing.get();
@@ -57,8 +57,8 @@ public class AnimalSyncService {
             Visit first = allVisits.get(0);
             Double startWeightKg = getEarliestWeightKg(allVisits);
             LocalDate startDay = first.visitTime().toLocalDate();
-            return new Animal(0, animalNumber, first.responder(), first.location(), Status.ACTIVE, null, null, null,
-                    startWeightKg, 0.0, 0.0, null, null, startDay, LocalDateTime.now());
+            return new Animal(0, animalNumber, first.responder(), groupId, first.location(), Status.ACTIVE, null, null,
+                    null, startWeightKg, 0.0, 0.0, null, null, startDay, LocalDateTime.now());
         }
     }
 
@@ -74,17 +74,21 @@ public class AnimalSyncService {
         Double fcr = getFCR(totalFeedKg, weightGainKg);
 
         // Re-use other fields from base (status, stopped, etc)
-        return new Animal(base.id(), base.animalNumber(), base.responder(), base.location(), base.status(),
-                base.stoppedReason(), base.stoppedAt(), fcr, startWeightKg, totalFeedKg, weightGainKg, latestWeightKg,
-                completedDays, startDay, base.createdAt());
+        return new Animal(base.id(), base.animalNumber(), base.responder(), base.groupId(), base.location(),
+                base.status(), base.stoppedReason(), base.stoppedAt(), fcr, startWeightKg, totalFeedKg, weightGainKg,
+                latestWeightKg, completedDays, startDay, base.createdAt());
     }
 
     // For reports and dashboard: create animal representing an animal's state at
     // the end of a
     // specific period (using only visitsInPeriod)
-    public static Animal buildAnimalForPeriod(int animalNumber, List<Visit> visitsInPeriod) {
+    public static Animal buildAnimalForPeriod(int animalNumber, List<Visit> visitsInPeriod) throws SQLException {
         if (visitsInPeriod == null || visitsInPeriod.isEmpty())
             return null;
+        Integer groupId = AnimalDAO.getGroupIdByAnimalNumber(animalNumber).orElse(null);
+        if (groupId == null) {
+            throw new NullPointerException(String.format("Animal with animal number: %d has no group", animalNumber));
+        }
         String responder = visitsInPeriod.get(0).responder();
         int location = visitsInPeriod.get(0).location();
         // Assume ACTIVE (report doesn't care about true/active/stopped)
@@ -97,8 +101,8 @@ public class AnimalSyncService {
         double totalFeedKg = getTotalFeedKg(visitsInPeriod);
         Double weightGainKg = getWeightGainKg(startWeightKg, latestWeightKg);
         Double fcr = getFCR(totalFeedKg, weightGainKg);
-        return new Animal(0, animalNumber, responder, location, status, null, null, fcr, startWeightKg, totalFeedKg,
-                weightGainKg, latestWeightKg, completedDays, startDay, null);
+        return new Animal(0, animalNumber, responder, groupId, location, status, null, null, fcr, startWeightKg,
+                totalFeedKg, weightGainKg, latestWeightKg, completedDays, startDay, null);
     }
 
     // Utility: earliest weight (in KG)

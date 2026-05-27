@@ -38,9 +38,9 @@ public class ReportImportService {
         return new ReportMetrics(meanMedians, topThree, activityByHour);
     }
 
-    public static int createReport(LocalDateTime importStart, LocalDateTime importEnd, int rowCount, int pigCount,
-            int createdBy) throws SQLException {
-        Report report = new Report(0, importStart, importEnd, rowCount, pigCount, null, createdBy, null);
+    public static int createReport(int groupId, LocalDateTime importStart, LocalDateTime importEnd, int rowCount,
+            int pigCount, int createdBy) throws SQLException {
+        Report report = new Report(0, groupId, importStart, importEnd, rowCount, pigCount, null, createdBy, null);
         Report created = ReportDAO.create(report);
         return created.id();
     }
