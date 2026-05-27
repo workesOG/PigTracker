@@ -18,8 +18,6 @@ import pigtracker.model.HistoricalImportComparisonMetrics;
 import pigtracker.model.KpiMetrics;
 import pigtracker.model.PopulationDistributionGraphMetrics;
 import pigtracker.service.DashboardCreationService;
-import pigtracker.util.MathUtil;
-import pigtracker.util.MetricsUtil;
 
 public class DashboardController {
     @FXML
@@ -76,7 +74,6 @@ public class DashboardController {
         setKpis(dashboardMetrics);
         setPopulationDistributionGraph(pdgMetrics, pdgMetric);
         setHistoricalImportComparisonGraph(hicMetrics);
-        // TODO: Add calls for graphs once you wire them in
     }
 
     public void setEmpty() {
