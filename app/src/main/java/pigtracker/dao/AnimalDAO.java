@@ -115,7 +115,7 @@ public final class AnimalDAO {
 
         try (Connection conn = ConnectionDAO.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
             bindAnimal(ps, animal);
-            ps.setInt(17, animal.id());
+            ps.setInt(14, animal.id());
 
             return ps.executeUpdate() > 0;
         }
