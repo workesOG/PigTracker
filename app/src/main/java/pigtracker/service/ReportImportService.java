@@ -4,13 +4,12 @@ package pigtracker.service;
 import pigtracker.dao.ReportDAO;
 import pigtracker.dao.VisitDAO;
 import pigtracker.model.Animal;
-import pigtracker.model.DisplayType;
 import pigtracker.model.MeanMedianMetric;
 import pigtracker.model.Report;
 import pigtracker.model.ReportMetrics;
 import pigtracker.model.TopThreePigs;
 import pigtracker.model.Visit;
-import pigtracker.util.MathUtil;
+import pigtracker.util.MetricsUtil;
 
 import java.sql.SQLException;
 import java.time.LocalDateTime;
@@ -33,9 +32,9 @@ public class ReportImportService {
             }
         }
 
-        List<MeanMedianMetric> meanMedians = calculateMeanMedianMetrics(animals, visits, visitsByAnimal);
-        List<TopThreePigs> topThree = calculateTopThreePigs(animals, visits, visitsByAnimal);
-        List<Integer> activityByHour = calculateActivityByHour(visits);
+        List<MeanMedianMetric> meanMedians = MetricsUtil.calculateMeanMedianMetrics(animals, visits, visitsByAnimal);
+        List<TopThreePigs> topThree = MetricsUtil.calculateTopThreePigs(animals, visits, visitsByAnimal);
+        List<Integer> activityByHour = MetricsUtil.calculateActivityByHour(visits);
         return new ReportMetrics(meanMedians, topThree, activityByHour);
     }
 
@@ -44,105 +43,5 @@ public class ReportImportService {
         Report report = new Report(0, importStart, importEnd, rowCount, pigCount, null, createdBy, null);
         Report created = ReportDAO.create(report);
         return created.id();
-    }
-
-    private static List<MeanMedianMetric> calculateMeanMedianMetrics(List<Animal> animals, List<Visit> visits,
-            Map<Integer, List<Visit>> visitsByAnimal) {
-        List<MeanMedianMetric> meanMedians = new ArrayList<>();
-
-        // 1. FCR
-        List<Double> fcrList = animals.stream().map(Animal::fcr).filter(java.util.Objects::nonNull).toList();
-        meanMedians.add(
-                new MeanMedianMetric("FCR", MathUtil.mean(fcrList), MathUtil.median(fcrList), DisplayType.DECIMAL));
-
-        // 2. Weight
-        List<Double> weightList = animals.stream().map(Animal::latestWeightKg).filter(java.util.Objects::nonNull)
-                .toList();
-        meanMedians.add(new MeanMedianMetric("Weight", MathUtil.mean(weightList), MathUtil.median(weightList),
-                DisplayType.DECIMAL));
-
-        // 3. Feed per Visit
-        List<Double> feedPerVisitList = visits.stream().map(v -> v.feedIntakeG() / 1000.0).toList();
-        meanMedians.add(new MeanMedianMetric("Feed/Visit (kg)", MathUtil.mean(feedPerVisitList),
-                MathUtil.median(feedPerVisitList), DisplayType.DECIMAL));
-
-        // 4. Feed per Day per Pig
-        List<Double> feedPerDayList = animals.stream()
-                .filter(a -> a.totalFeedKg() != null && a.completedDays() != null && a.completedDays() > 0)
-                .map(a -> a.totalFeedKg() / a.completedDays()).toList();
-        meanMedians.add(new MeanMedianMetric("Feed/Day (kg)", MathUtil.mean(feedPerDayList),
-                MathUtil.median(feedPerDayList), DisplayType.DECIMAL));
-
-        // 5. Visits per Pig per Day
-        List<Double> visitsPerPigPerDayList = visitsByAnimal.values().stream().filter(list -> !list.isEmpty())
-                .map(list -> {
-                    int visitCount = list.size();
-                    LocalDateTime firstVisit = list.stream().map(Visit::visitTime).min(LocalDateTime::compareTo).get();
-                    LocalDateTime lastVisit = list.stream().map(Visit::visitTime).max(LocalDateTime::compareTo).get();
-                    long daysActive = java.time.Duration
-                            .between(firstVisit.toLocalDate().atStartOfDay(), lastVisit.toLocalDate().atStartOfDay())
-                            .toDays() + 1;
-                    if (daysActive <= 0)
-                        daysActive = 1;
-                    return visitCount / (double)daysActive;
-                }).toList();
-        meanMedians.add(new MeanMedianMetric("Visits/Pig/Day", MathUtil.mean(visitsPerPigPerDayList),
-                MathUtil.median(visitsPerPigPerDayList), DisplayType.DECIMAL));
-
-        // 6. Visit Duration (seconds)
-        List<Double> visitDurationList = visits.stream().map(v -> (double)v.durationSec()).toList();
-        meanMedians.add(new MeanMedianMetric("Visit Duration (s)", MathUtil.mean(visitDurationList),
-                MathUtil.median(visitDurationList), DisplayType.TIME));
-
-        return meanMedians;
-    }
-
-    private static List<TopThreePigs> calculateTopThreePigs(List<Animal> animals, List<Visit> visits,
-            Map<Integer, List<Visit>> visitsByAnimal) {
-        List<TopThreePigs> topThree = new ArrayList<>();
-
-        // 1. FCR (best/lowest)
-        List<Animal> topFCR = animals.stream().filter(a -> a.fcr() != null && a.fcr() > 0)
-                .sorted(java.util.Comparator.comparingDouble(Animal::fcr)).limit(3).toList();
-        topThree.add(new TopThreePigs("FCR", topFCR.stream().mapToInt(Animal::animalNumber).toArray(),
-                topFCR.stream().mapToDouble(Animal::fcr).toArray(), DisplayType.DECIMAL));
-
-        // 2. Weight (heaviest)
-        List<Animal> topWeight = animals.stream().filter(a -> a.latestWeightKg() != null)
-                .sorted(java.util.Comparator.comparingDouble(Animal::latestWeightKg).reversed()).limit(3).toList();
-        topThree.add(new TopThreePigs("Weight", topWeight.stream().mapToInt(Animal::animalNumber).toArray(),
-                topWeight.stream().mapToDouble(Animal::latestWeightKg).toArray(), DisplayType.DECIMAL));
-
-        // 3. Feed intake (most)
-        List<Animal> topFeed = animals.stream().filter(a -> a.totalFeedKg() != null)
-                .sorted(java.util.Comparator.comparingDouble(Animal::totalFeedKg).reversed()).limit(3).toList();
-        topThree.add(new TopThreePigs("Feed Intake", topFeed.stream().mapToInt(Animal::animalNumber).toArray(),
-                topFeed.stream().mapToDouble(Animal::totalFeedKg).toArray(), DisplayType.DECIMAL));
-
-        // 4. Longest single visit
-        List<Visit> topLongestVisits = visits.stream()
-                .sorted(java.util.Comparator.comparingInt(Visit::durationSec).reversed()).limit(3).toList();
-        topThree.add(new TopThreePigs("Longest Visit",
-                topLongestVisits.stream().mapToInt(Visit::animalNumber).toArray(),
-                topLongestVisits.stream().mapToDouble(v -> (double)v.durationSec()).toArray(), DisplayType.TIME));
-
-        // 5. Most visits
-        List<java.util.Map.Entry<Integer, List<Visit>>> topMostVisits = visitsByAnimal.entrySet().stream()
-                .sorted(java.util.Comparator.comparingInt(e -> -e.getValue().size())).limit(3).toList();
-        topThree.add(new TopThreePigs("Most Visits",
-                topMostVisits.stream().mapToInt(java.util.Map.Entry::getKey).toArray(),
-                topMostVisits.stream().mapToDouble(e -> (double)e.getValue().size()).toArray(), DisplayType.INT));
-
-        return topThree;
-    }
-
-    private static List<Integer> calculateActivityByHour(List<Visit> visits) {
-        // Prepare a list of 24 zeros (for each hour)
-        List<Integer> activityByHour = new ArrayList<>(java.util.Collections.nCopies(24, 0));
-        for (Visit visit : visits) {
-            int hour = visit.visitTime().getHour(); // get hour (0-23)
-            activityByHour.set(hour, activityByHour.get(hour) + 1);
-        }
-        return activityByHour;
     }
 }

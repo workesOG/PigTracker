@@ -20,4 +20,11 @@ public class MathUtil {
         int n = sorted.size();
         return n % 2 == 1 ? sorted.get(n / 2) : (sorted.get(n / 2 - 1) + sorted.get(n / 2)) / 2.0;
     }
+
+    public static double percentChange(double oldValue, double newValue) {
+        if (oldValue == 0) {
+            return 0.0;
+        }
+        return ((newValue - oldValue) / Math.abs(oldValue)) * 100.0;
+    }
 }
