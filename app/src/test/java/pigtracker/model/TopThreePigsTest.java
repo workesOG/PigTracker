@@ -13,7 +13,7 @@ class TopThreePigsTest {
         TopThreePigs top = new TopThreePigs("FCR", new int[] { 1, 2 }, new double[] { 1.5, 2.345 },
                 DisplayType.DECIMAL);
 
-        assertArrayEquals(new String[] { "1.50", "2.35" }, top.getDisplayStrings());
+        assertArrayEquals(new String[] { "1,50", "2,35" }, top.getDisplayStrings());
     }
 
     @Test

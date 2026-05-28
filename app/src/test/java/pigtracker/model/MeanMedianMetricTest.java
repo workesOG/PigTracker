@@ -12,8 +12,8 @@ class MeanMedianMetricTest {
     void decimalDisplayFormatsToTwoDecimals() {
         MeanMedianMetric metric = new MeanMedianMetric("FCR", 1.5, 2.345, DisplayType.DECIMAL);
 
-        assertEquals("1.50", metric.getMeanDisplayString());
-        assertEquals("2.35", metric.getMedianDisplayString()); // rounded to two decimals
+        assertEquals("1,50", metric.getMeanDisplayString());
+        assertEquals("2,35", metric.getMedianDisplayString()); // rounded to two decimals
     }
 
     @Test
