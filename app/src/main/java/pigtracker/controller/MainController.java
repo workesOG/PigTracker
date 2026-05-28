@@ -81,7 +81,7 @@ public class MainController {
 
     private void updateImportExportMenuVisibility() {
         boolean hasAdminPermissions = Session.getCurrentUser().permission() == User.Permission.ADMIN;
-        importExportMenu.setDisable(!false);
+        importExportMenu.setDisable(!hasAdminPermissions);
     }
 
     private void updateMenuText() {
