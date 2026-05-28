@@ -2,11 +2,15 @@
 
 package pigtracker.service;
 
-import pigtracker.dao.GroupDAO;
-import pigtracker.dao.ReportDAO;
 import java.sql.SQLException;
 
-public class DatabaseCleanupService {
+import pigtracker.dao.GroupDAO;
+import pigtracker.dao.ReportDAO;
+
+public final class DatabaseCleanupService {
+
+    private DatabaseCleanupService() {}
+
     public static void cleanupInProgressGroupsAndReports() throws SQLException {
         ReportDAO.deleteAllInProgress();
         GroupDAO.deleteAllInProgress();
