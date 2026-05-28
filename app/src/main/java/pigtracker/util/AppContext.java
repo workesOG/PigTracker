@@ -4,18 +4,21 @@ package pigtracker.util;
 
 import pigtracker.controller.DashboardController;
 import pigtracker.controller.DataController;
-import pigtracker.controller.ReportsController;
 import pigtracker.controller.MainController;
+import pigtracker.controller.ReportsController;
 
-public class AppContext {
+public final class AppContext {
+
     private static ReportsController reportsController;
     private static DashboardController dashboardController;
     private static DataController dataController;
     private static MainController mainController;
 
+    private AppContext() {}
+
     public static ReportsController getReportsController() {
         return reportsController;
-    };
+    }
 
     public static void setReportsController(ReportsController controller) {
         reportsController = controller;
@@ -31,7 +34,7 @@ public class AppContext {
 
     public static DataController getDataController() {
         return dataController;
-    };
+    }
 
     public static void setDataController(DataController controller) {
         dataController = controller;

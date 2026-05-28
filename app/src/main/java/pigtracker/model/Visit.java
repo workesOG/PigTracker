@@ -14,9 +14,9 @@ public record Visit(int id, int animalNumber, String responder, int reportId, in
     }
 
     // Theis Thomsen
-    // Return a copy of this visit with the given report id (used to set report id
-    // before inserting)
+    // Returns a copy of this visit with the given report id (used to set report id before inserting)
     public Visit withReportId(int newReportId) {
-        return new Visit(id, animalNumber, responder, newReportId, location, visitTime, durationSec, weightG, feedIntakeG);
+        return new Visit(id, animalNumber, responder, newReportId, location, visitTime, durationSec, weightG,
+                feedIntakeG);
     }
 }
