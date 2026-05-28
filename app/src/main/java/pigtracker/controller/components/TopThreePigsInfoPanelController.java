@@ -6,38 +6,30 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 
 public class TopThreePigsInfoPanelController {
-    @FXML
-    private Label metricLabel;
 
-    @FXML
-    private Label pig1Label;
+    private static final int PIG_COUNT = 3;
 
-    @FXML
-    private Label pig2Label;
+    @FXML private Label metricLabel;
 
-    @FXML
-    private Label pig3Label;
+    @FXML private Label pig1Label;
+    @FXML private Label pig2Label;
+    @FXML private Label pig3Label;
 
-    @FXML
-    private Label pig1ValueLabel;
-
-    @FXML
-    private Label pig2ValueLabel;
-
-    @FXML
-    private Label pig3ValueLabel;
+    @FXML private Label pig1ValueLabel;
+    @FXML private Label pig2ValueLabel;
+    @FXML private Label pig3ValueLabel;
 
     public void setData(String metric, int[] pigNumbers, String[] pigValueStrings) {
         metricLabel.setText(metric);
+        if (pigNumbers.length != PIG_COUNT || pigValueStrings.length != PIG_COUNT)
+            return;
 
-        if (pigNumbers.length == 3 && pigValueStrings.length == 3) {
-            pig1Label.setText("#" + pigNumbers[0] + ":");
-            pig2Label.setText("#" + pigNumbers[1] + ":");
-            pig3Label.setText("#" + pigNumbers[2] + ":");
+        Label[] numberLabels = { pig1Label, pig2Label, pig3Label };
+        Label[] valueLabels = { pig1ValueLabel, pig2ValueLabel, pig3ValueLabel };
 
-            pig1ValueLabel.setText(pigValueStrings[0]);
-            pig2ValueLabel.setText(pigValueStrings[1]);
-            pig3ValueLabel.setText(pigValueStrings[2]);
+        for (int i = 0; i < PIG_COUNT; i++) {
+            numberLabels[i].setText("#" + pigNumbers[i] + ":");
+            valueLabels[i].setText(pigValueStrings[i]);
         }
     }
 }

@@ -8,58 +8,39 @@ import javafx.scene.control.Label;
 public class FilterChipController {
 
     public enum Operator {
-        LESS_THAN, GREATER_THAN, EQUALS, RANGE
+        LESS_THAN("<"),
+        GREATER_THAN(">"),
+        EQUALS("="),
+        RANGE("Range");
+
+        private final String label;
+
+        Operator(String label) {
+            this.label = label;
+        }
+
+        public String label() {
+            return label;
+        }
+
+        public static Operator fromLabel(String label) {
+            for (Operator op : values()) {
+                if (op.label.equals(label))
+                    return op;
+            }
+            throw new IllegalArgumentException("Unknown operator label: " + label);
+        }
     }
 
-    @FXML
-    private Label valueLabel;
-
-    @FXML
-    private Label ruleLabel;
-
-    @FXML
-    private Label removeButton;
+    @FXML private Label valueLabel;
+    @FXML private Label ruleLabel;
+    @FXML private Label removeButton;
 
     private String value;
     private Operator operator;
-
     private String num1;
     private String num2;
-
     private Runnable removeAction;
-
-    public void setRule(String value, Operator operator, String num1) {
-
-        setRule(value, operator, num1, null);
-    }
-
-    public void setRule(String value, Operator operator, String num1, String num2) {
-
-        this.value = value;
-        this.operator = operator;
-
-        this.num1 = num1;
-        this.num2 = num2;
-
-        valueLabel.setText(value);
-
-        switch (operator) {
-
-        case LESS_THAN -> ruleLabel.setText("< " + num1);
-
-        case GREATER_THAN -> ruleLabel.setText("> " + num1);
-
-        case EQUALS -> ruleLabel.setText("= " + num1);
-
-        case RANGE -> {
-
-            if (num2 == null)
-                throw new IllegalArgumentException("Range requires num2");
-
-            ruleLabel.setText("[" + num1 + " - " + num2 + "]");
-        }
-        }
-    }
 
     @FXML
     public void initialize() {
@@ -69,8 +50,30 @@ public class FilterChipController {
         });
     }
 
-    public void setRemoveAction(Runnable action) {
+    public void setRule(String value, Operator operator, String num1) {
+        setRule(value, operator, num1, null);
+    }
 
+    public void setRule(String value, Operator operator, String num1, String num2) {
+        this.value = value;
+        this.operator = operator;
+        this.num1 = num1;
+        this.num2 = num2;
+
+        valueLabel.setText(value);
+        ruleLabel.setText(switch (operator) {
+            case LESS_THAN -> "< " + num1;
+            case GREATER_THAN -> "> " + num1;
+            case EQUALS -> "= " + num1;
+            case RANGE -> {
+                if (num2 == null)
+                    throw new IllegalArgumentException("Range requires num2");
+                yield "[" + num1 + " - " + num2 + "]";
+            }
+        });
+    }
+
+    public void setRemoveAction(Runnable action) {
         this.removeAction = action;
     }
 

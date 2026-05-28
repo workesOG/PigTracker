@@ -1,4 +1,4 @@
-//Af Nikolaj Jakobsen
+// Af Nikolaj Jakobsen
 
 package pigtracker.controller;
 
@@ -13,14 +13,10 @@ import pigtracker.service.AuthenticationException;
 import pigtracker.service.UserService;
 
 public class LoginController {
-    @FXML
-    private TextField usernameField;
 
-    @FXML
-    private PasswordField passwordField;
-
-    @FXML
-    private Label errorLabel;
+    @FXML private TextField usernameField;
+    @FXML private PasswordField passwordField;
+    @FXML private Label errorLabel;
 
     @FXML
     private void handleLogin() {
@@ -30,18 +26,12 @@ public class LoginController {
         try {
             UserService.login(username, password);
         } catch (AuthenticationException e) {
-            errorLabel.setText("Invalid username or password");
-            errorLabel.setVisible(true);
-
+            showError("Invalid username or password");
             passwordField.clear();
-
             return;
         } catch (SQLException e) {
-            errorLabel.setText("Could not reach the database");
-            errorLabel.setVisible(true);
-
+            showError("Could not reach the database");
             e.printStackTrace();
-
             return;
         }
 
@@ -50,5 +40,10 @@ public class LoginController {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void showError(String message) {
+        errorLabel.setText(message);
+        errorLabel.setVisible(true);
     }
 }

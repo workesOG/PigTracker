@@ -2,32 +2,28 @@
 
 package pigtracker.controller;
 
-import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.ListView;
-import javafx.scene.layout.AnchorPane;
-import pigtracker.model.Report;
-import pigtracker.model.ReportMetrics;
-import pigtracker.util.AppContext;
-import pigtracker.dao.ReportDAO;
-import pigtracker.dao.VisitDAO;
-import javafx.fxml.FXMLLoader;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Optional;
+
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Button;
+import javafx.scene.control.ListView;
+import javafx.scene.layout.AnchorPane;
+import pigtracker.dao.ReportDAO;
+import pigtracker.dao.VisitDAO;
+import pigtracker.model.Report;
+import pigtracker.model.ReportMetrics;
+import pigtracker.service.ReportImportService;
+import pigtracker.util.Alerts;
+import pigtracker.util.AppContext;
 
 public class ReportsController {
-    @FXML
-    private ListView<Report> reportList;
 
-    @FXML
-    private AnchorPane reportContainer;
-
-    @FXML
-    private Button deleteReportButton;
+    @FXML private ListView<Report> reportList;
+    @FXML private AnchorPane reportContainer;
+    @FXML private Button deleteReportButton;
 
     @FXML
     public void initialize() {
@@ -49,13 +45,7 @@ public class ReportsController {
         if (selectedReport == null)
             return;
 
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
-                "Are you sure you want to delete this report (and all its visits)?", ButtonType.YES, ButtonType.NO);
-        confirm.setTitle("Delete Report");
-        confirm.setHeaderText(null);
-
-        Optional<ButtonType> result = confirm.showAndWait();
-        if (result.isEmpty() || result.get() != ButtonType.YES)
+        if (!Alerts.confirm("Delete Report", "Are you sure you want to delete this report (and all its visits)?"))
             return;
 
         try {
@@ -65,9 +55,7 @@ public class ReportsController {
             reportContainer.getChildren().clear();
         } catch (SQLException ex) {
             ex.printStackTrace();
-            Alert error = new Alert(Alert.AlertType.ERROR, "Failed to delete report: " + ex.getMessage());
-            error.setHeaderText("Delete failed");
-            error.showAndWait();
+            Alerts.error("Delete failed", null, "Failed to delete report: " + ex.getMessage());
         }
     }
 
@@ -83,7 +71,7 @@ public class ReportsController {
                     report.importEnd(), report.rowCount(), report.pigCount(), report.createdBy());
 
             try {
-                ReportMetrics metrics = pigtracker.service.ReportImportService.generateReportData(report);
+                ReportMetrics metrics = ReportImportService.generateReportData(report);
                 controller.setMeanMedianPanels(metrics.meanMedian());
                 controller.setTopPigPanels(metrics.topThree());
                 controller.setActivityDensityGraph(metrics.activityByHour());

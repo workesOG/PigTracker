@@ -1,33 +1,38 @@
 package pigtracker.controller;
 
+import java.io.File;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TextInputDialog;
+import javafx.stage.FileChooser;
 import pigtracker.Main;
 import pigtracker.dao.GroupDAO;
 import pigtracker.dao.ReportDAO;
 import pigtracker.dao.VisitDAO;
 import pigtracker.model.Group;
 import pigtracker.model.Report;
+import pigtracker.service.ExportService;
+import pigtracker.service.ImportService;
 import pigtracker.service.UserService;
+import pigtracker.util.Alerts;
 import pigtracker.util.AppContext;
 import pigtracker.util.Session;
 
-import javafx.stage.FileChooser;
-import pigtracker.service.ImportService;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.TabPane;
-
-import java.io.File;
-import java.io.IOException;
-import java.sql.SQLException;
-import java.time.LocalDateTime;
-import java.util.List;
-
-import javafx.scene.control.MenuItem;
-
 public class MainController {
+
+    private static final int REPORTS_TAB_INDEX = 2;
+    private static final FileChooser.ExtensionFilter CSV_FILTER =
+            new FileChooser.ExtensionFilter("CSV Files", "*.csv");
+
     @FXML
     private TabPane mainTabPane;
 
@@ -49,9 +54,8 @@ public class MainController {
     public void initialize() {
         AppContext.setMainController(this);
         updateMenuText();
-        // Listen for tab changes, used for clearing report window if you switch away
         mainTabPane.getSelectionModel().selectedIndexProperty().addListener((obs, oldIdx, newIdx) -> {
-            if (newIdx == null || newIdx.intValue() != 2) {
+            if (newIdx == null || newIdx.intValue() != REPORTS_TAB_INDEX) {
                 var reportsController = AppContext.getReportsController();
                 if (reportsController != null) {
                     reportsController.clearReportView();
@@ -64,7 +68,6 @@ public class MainController {
     private void toggleShowDiscontinuedAnimals() {
         showDiscontinuedAnimals = !showDiscontinuedAnimals;
         updateMenuText();
-        // Refresh DataController's animal table if needed
         DataController dataController = AppContext.getDataController();
         if (dataController != null) {
             dataController.loadAnimalData();
@@ -73,8 +76,8 @@ public class MainController {
 
     private void updateMenuText() {
         if (toggleDiscontinuedAnimalsMenu != null) {
-            toggleDiscontinuedAnimalsMenu
-                    .setText(showDiscontinuedAnimals ? "Hide Discontinued Animals" : "Show Discontinued Animals");
+            toggleDiscontinuedAnimalsMenu.setText(
+                    showDiscontinuedAnimals ? "Hide Discontinued Animals" : "Show Discontinued Animals");
         }
     }
 
@@ -82,7 +85,6 @@ public class MainController {
     @FXML
     private void handleLogout() {
         UserService.logout();
-
         try {
             Main.showLoginView();
         } catch (Exception e) {
@@ -99,33 +101,28 @@ public class MainController {
     // Theis Thomsen
     @FXML
     private void handleImport() {
-        File selectedFile = chooseCsvFile();
-        if (selectedFile == null) {
+        File selectedFile = chooseCsvFile("Import Visits from CSV");
+        if (selectedFile == null)
             return;
-        }
 
         String groupName = promptForGroupName();
-        if (groupName == null || groupName.isBlank()) {
+        if (groupName == null || groupName.isBlank())
             return;
-        }
 
         try {
-            ImportService.importFromCSV(selectedFile, groupName, () -> {
-                AppContext.getReportsController().refreshReportList();
-            });
-            showInfoAlert("Import Successful", "The CSV import was completed successfully.");
+            ImportService.importFromCSV(selectedFile, groupName,
+                    () -> AppContext.getReportsController().refreshReportList());
+            Alerts.info("Import Successful", "The CSV import was completed successfully.");
         } catch (IOException e) {
             e.printStackTrace();
-            showErrorAlert("Import Failed", "An error occurred during the CSV import.", e.getMessage());
+            Alerts.error("Import Failed", "An error occurred during the CSV import.", e.getMessage());
         }
     }
 
     // Theis Thomsen
     @FXML
     public void handleReimport() {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Select new CSV file");
-        File file = fileChooser.showOpenDialog(Main.getPrimaryStage());
+        File file = chooseCsvFile("Select new CSV file");
         if (file == null)
             return;
 
@@ -133,32 +130,21 @@ public class MainController {
         try {
             reports = ReportDAO.getAllCompleted();
         } catch (SQLException e) {
-            showErrorAlert("Re-Import Failed", "Failed to get reports", e.getMessage());
+            Alerts.error("Re-Import Failed", "Failed to get reports", e.getMessage());
             e.printStackTrace();
             return;
         }
-        ObservableList<String> options = FXCollections.observableArrayList();
-        for (Report r : reports) {
-            options.add(r.toString());
-        }
 
-        String selected = MenuSelectionWindowController.showAndWait(Main.getPrimaryStage(), "report", options);
-        if (selected == null)
-            return;
-
-        Report oldReport = reports.stream().filter(r -> r.toString().equals(selected)).findFirst().orElse(null);
+        Report oldReport = pickReport(reports);
         if (oldReport == null)
             return;
 
-        int oldGroupId = oldReport.groupId();
-        LocalDateTime originalCreatedAt = oldReport.createdAt();
         String groupName;
-
         try {
-            groupName = GroupDAO.findById(oldGroupId).orElse(null).name();
+            groupName = GroupDAO.findById(oldReport.groupId()).map(Group::name).orElse(null);
         } catch (SQLException e) {
             e.printStackTrace();
-            showErrorAlert("Re-Import Failed", "Failed to find groups by ID", e.getMessage());
+            Alerts.error("Re-Import Failed", "Failed to find groups by ID", e.getMessage());
             return;
         }
 
@@ -166,15 +152,16 @@ public class MainController {
             VisitDAO.deleteByReportId(oldReport.id());
             ReportDAO.delete(oldReport.id());
         } catch (SQLException e) {
-            showErrorAlert("Re-Import Failed", "Failed to delete old report data", e.getMessage());
+            Alerts.error("Re-Import Failed", "Failed to delete old report data", e.getMessage());
             e.printStackTrace();
             return;
         }
 
+        LocalDateTime originalCreatedAt = oldReport.createdAt();
         try {
             ImportService.importFromCSV(file, groupName, originalCreatedAt);
         } catch (IOException e) {
-            showErrorAlert("Re-Import Failed", "Failed to import new data", e.getMessage());
+            Alerts.error("Re-Import Failed", "Failed to import new data", e.getMessage());
             e.printStackTrace();
         }
 
@@ -186,101 +173,96 @@ public class MainController {
     private void handleExport() {
         List<Group> groups;
         try {
-            groups = pigtracker.dao.GroupDAO.getAll();
+            groups = GroupDAO.getAll();
         } catch (SQLException e) {
-            showErrorAlert("Export Failed", "Failed to load groups", e.getMessage());
+            Alerts.error("Export Failed", "Failed to load groups", e.getMessage());
             return;
         }
 
         if (groups.isEmpty()) {
-            showErrorAlert("Export Failed", "No groups found", "At least one group is required to export data.");
+            Alerts.error("Export Failed", "No groups found", "At least one group is required to export data.");
             return;
         }
 
-        ObservableList<String> options = FXCollections.observableArrayList();
-        for (var group : groups) {
-            options.add(group.name());
-        }
-
-        String selectedGroupName = MenuSelectionWindowController.showAndWait(Main.getPrimaryStage(), "group", options);
-        if (selectedGroupName == null)
+        Group selectedGroup = pickGroup(groups);
+        if (selectedGroup == null)
             return;
-
-        Group selectedGroup = groups.stream().filter(g -> g.name().equals(selectedGroupName))
-                .findFirst().orElse(null);
-
-        if (selectedGroup == null) {
-            showErrorAlert("Export Failed", "Group not found", "Unable to locate the selected group.");
-            return;
-        }
 
         List<Report> reports;
         try {
             reports = ReportDAO.findCompletedByGroupId(selectedGroup.id());
         } catch (SQLException e) {
-            showErrorAlert("Export Failed", "Failed to load reports for group", e.getMessage());
+            Alerts.error("Export Failed", "Failed to load reports for group", e.getMessage());
             return;
         }
 
         if (reports.isEmpty()) {
-            showErrorAlert("Export Failed", "No Reports", "No completed reports exist for the selected group.");
+            Alerts.error("Export Failed", "No Reports", "No completed reports exist for the selected group.");
             return;
         }
 
-        FileChooser chooser = new FileChooser();
-        chooser.setTitle("Export visits to CSV");
-        chooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
-        File file = chooser.showSaveDialog(Main.getPrimaryStage());
+        File file = chooseSaveCsvFile();
         if (file == null)
             return;
 
         try {
-            int nRows = pigtracker.service.ExportService.exportToCSV(file, reports);
-            showInfoAlert("Export Successful",
+            int nRows = ExportService.exportToCSV(file, reports);
+            Alerts.info("Export Successful",
                     "Successfully exported " + nRows + " visits to:\n" + file.getAbsolutePath());
         } catch (IOException e) {
-            showErrorAlert("Export Failed", "IO Error", e.getMessage());
+            Alerts.error("Export Failed", "IO Error", e.getMessage());
         }
     }
 
-    // Theis Thomsen
-    private File chooseCsvFile() {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Import Visits from CSV");
-        fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
-        return fileChooser.showOpenDialog(Main.getPrimaryStage());
+    private static Report pickReport(List<Report> reports) {
+        ObservableList<String> options = FXCollections.observableArrayList();
+        for (Report r : reports) {
+            options.add(r.toString());
+        }
+        String selected = MenuSelectionWindowController.showAndWait(Main.getPrimaryStage(), "report", options);
+        if (selected == null)
+            return null;
+        return reports.stream().filter(r -> r.toString().equals(selected)).findFirst().orElse(null);
+    }
+
+    private static Group pickGroup(List<Group> groups) {
+        ObservableList<String> options = FXCollections.observableArrayList();
+        for (Group group : groups) {
+            options.add(group.name());
+        }
+        String selectedName = MenuSelectionWindowController.showAndWait(Main.getPrimaryStage(), "group", options);
+        if (selectedName == null)
+            return null;
+        Group selected = groups.stream().filter(g -> g.name().equals(selectedName)).findFirst().orElse(null);
+        if (selected == null) {
+            Alerts.error("Export Failed", "Group not found", "Unable to locate the selected group.");
+        }
+        return selected;
     }
 
     // Theis Thomsen
-    private String promptForGroupName() {
-        javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog();
+    private static File chooseCsvFile(String title) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle(title);
+        fileChooser.getExtensionFilters().add(CSV_FILTER);
+        return fileChooser.showOpenDialog(Main.getPrimaryStage());
+    }
+
+    private static File chooseSaveCsvFile() {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Export visits to CSV");
+        chooser.getExtensionFilters().add(CSV_FILTER);
+        return chooser.showSaveDialog(Main.getPrimaryStage());
+    }
+
+    // Theis Thomsen
+    private static String promptForGroupName() {
+        TextInputDialog dialog = new TextInputDialog();
         dialog.setTitle("Specify Group Name");
         dialog.setHeaderText("Enter a name for the new group:");
         dialog.setContentText("Group name:");
 
-        java.util.Optional<String> result = dialog.showAndWait();
-        if (result.isPresent() && !result.get().trim().isEmpty()) {
-            return result.get().trim();
-        } else {
-            return null;
-        }
-    }
-
-    // Theis Thomsen
-    private void showInfoAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
-    }
-
-    // Theis Thomsen
-    private void showErrorAlert(String title, String header, String message) {
-        Alert alert = new Alert(AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(header);
-        alert.setContentText(message);
-        alert.showAndWait();
+        Optional<String> result = dialog.showAndWait();
+        return result.map(String::trim).filter(s -> !s.isEmpty()).orElse(null);
     }
 }

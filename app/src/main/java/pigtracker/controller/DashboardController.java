@@ -5,16 +5,17 @@ package pigtracker.controller;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.chart.BarChart;
+import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import pigtracker.Main;
@@ -28,41 +29,26 @@ import pigtracker.model.KpiMetrics;
 import pigtracker.model.PopulationDistributionGraphMetrics;
 import pigtracker.service.DashboardCreationService;
 import pigtracker.service.GroupHandlingService;
+import pigtracker.util.Alerts;
 import pigtracker.util.AppContext;
+import pigtracker.util.DateFormattingUtil;
 
 public class DashboardController {
-    @FXML
-    private Label activeGroupLabel;
 
-    @FXML
-    private Button setGroupButton;
+    @FXML private Label activeGroupLabel;
+    @FXML private Button setGroupButton;
 
-    @FXML
-    private KpiController fcrCardController;
+    @FXML private KpiController fcrCardController;
+    @FXML private KpiController weightCardController;
+    @FXML private KpiController feedCardController;
+    @FXML private KpiController populationCardController;
 
-    @FXML
-    private KpiController weightCardController;
+    @FXML private SegmentedToggleController pdgMetricSegmentedToggleController;
+    @FXML private SegmentedToggleController hicMetricSegmentedToggleController;
+    @FXML private SegmentedToggleController hicPeriodSegmentedToggleController;
 
-    @FXML
-    private KpiController feedCardController;
-
-    @FXML
-    private KpiController populationCardController;
-
-    @FXML
-    private SegmentedToggleController pdgMetricSegmentedToggleController;
-
-    @FXML
-    private SegmentedToggleController hicMetricSegmentedToggleController;
-
-    @FXML
-    private SegmentedToggleController hicPeriodSegmentedToggleController;
-
-    @FXML
-    private BarChart<String, Number> populationDistributionGraph;
-
-    @FXML
-    private BarChart<String, Number> historicalImportComparisonGraph;
+    @FXML private BarChart<String, Number> populationDistributionGraph;
+    @FXML private BarChart<String, Number> historicalImportComparisonGraph;
 
     private Integer activeGroupId;
 
@@ -95,27 +81,22 @@ public class DashboardController {
         try {
             List<Group> groups = GroupDAO.getAll();
             if (groups.isEmpty()) {
-                showInfoAlert("No groups available", "There are no groups to select.");
+                Alerts.info("No groups available", "There are no groups to select.");
                 return;
             }
 
             Map<String, Group> nameToGroup = groups.stream().collect(Collectors.toMap(Group::name, g -> g));
-
             ObservableList<String> groupNames = FXCollections.observableArrayList(nameToGroup.keySet());
-
             String chosenGroupName = MenuSelectionWindowController.showAndWait(Main.getPrimaryStage(), "Select Group",
                     groupNames);
 
             if (chosenGroupName != null) {
-                Group selectedGroup = nameToGroup.get(chosenGroupName);
-                setGroup(selectedGroup);
+                setGroup(nameToGroup.get(chosenGroupName));
                 setDashboardMetrics();
-                System.out.println("Selected group: " + selectedGroup);
             }
-
         } catch (Exception e) {
             e.printStackTrace();
-            showErrorAlert("Error", "Could not fetch groups.", e.getMessage());
+            Alerts.error("Error", "Could not fetch groups.", e.getMessage());
         }
     }
 
@@ -149,29 +130,18 @@ public class DashboardController {
     }
 
     public void setEmpty() {
-        fcrCardController.setTitle("Feed Conversion Rate (FCR)");
-        fcrCardController.setValue(0, 1);
-        fcrCardController.setUnit("kg feed / kg gain");
-        fcrCardController.setTrend(0);
-        fcrCardController.setDescription("Mean");
+        resetKpi(fcrCardController, "Feed Conversion Rate (FCR)", "kg feed / kg gain", 1, "Mean");
+        resetKpi(weightCardController, "Animal Weight", "kg gain / day", 2, "Mean");
+        resetKpi(feedCardController, "Feed Consumption", "g feed / day", 0, "Mean");
+        resetKpi(populationCardController, "Animal Population", "pigs", 0, "Total");
+    }
 
-        weightCardController.setTitle("Animal Weight");
-        weightCardController.setValue(0, 2);
-        weightCardController.setUnit("kg gain / day");
-        weightCardController.setTrend(0);
-        weightCardController.setDescription("Mean");
-
-        feedCardController.setTitle("Feed Consumption");
-        feedCardController.setValue(0, 0);
-        feedCardController.setUnit("g feed / day");
-        feedCardController.setTrend(0);
-        feedCardController.setDescription("Mean");
-
-        populationCardController.setTitle("Animal Population");
-        populationCardController.setValue(0, 0);
-        populationCardController.setUnit("pigs");
-        populationCardController.setTrend(0);
-        populationCardController.setDescription("Total");
+    private static void resetKpi(KpiController card, String title, String unit, int decimals, String description) {
+        card.setTitle(title);
+        card.setValue(0, decimals);
+        card.setUnit(unit);
+        card.setTrend(0);
+        card.setDescription(description);
     }
 
     private void setKpis(DashboardMetrics metrics) {
@@ -192,31 +162,45 @@ public class DashboardController {
         controller.setUnit(kpi.unit());
         controller.setTrend(kpi.trend());
         controller.setDescription(kpi.description());
-
         setKpiTrendGraph(controller, kpi.history(), kpi.decimals());
     }
 
     private void setKpiTrendGraph(KpiController controller, List<Double> historyData, int decimals) {
         LineChart<String, Number> chart = controller.getSparklineChart();
+        // Disable animation; otherwise an in-flight transition from the previous render
+        // can interleave with the new data and the chart shows stale or partial values.
+        chart.setAnimated(false);
         chart.setLegendVisible(false);
 
-        XYChart.Series<String, Number> series = new XYChart.Series<>();
-        for (int i = historyData.size() - 1; i >= 0; i--) {
-            String label = String.valueOf(historyData.size() - i);
-            series.getData().add(new XYChart.Data<>(label, historyData.get(i)));
-        }
+        // CategoryAxis retains categories across re-renders. Clear them before swapping
+        // the series, otherwise old "report N" slots stay on the axis and the new data
+        // plots against the wrong x positions (or nothing renders).
+        CategoryAxis xAxis = (CategoryAxis) chart.getXAxis();
         chart.getData().clear();
+        xAxis.getCategories().clear();
+
+        // Plot oldest-on-the-left, newest-on-the-right. historyData is newest-first.
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        int n = historyData.size();
+        for (int i = 0; i < n; i++) {
+            Double value = historyData.get(n - 1 - i);
+            series.getData().add(new XYChart.Data<>(String.valueOf(i + 1), value));
+        }
         chart.getData().add(series);
-        chart.getXAxis().setLabel("Report");
+        xAxis.setLabel("Report");
         chart.getYAxis().setLabel("");
 
-        NumberAxis yAxis = (NumberAxis)chart.getYAxis();
+        configureSparklineYAxis((NumberAxis) chart.getYAxis(), historyData, decimals);
+    }
+
+    private static void configureSparklineYAxis(NumberAxis yAxis, List<Double> historyData, int decimals) {
         double min = historyData.stream().mapToDouble(Double::doubleValue).min().orElse(0);
         double max = historyData.stream().mapToDouble(Double::doubleValue).max().orElse(1);
 
         if (min == max) {
-            min = min - (min == 0 ? 1 : Math.abs(min * 0.1));
-            max = max + (max == 0 ? 1 : Math.abs(max * 0.1));
+            double padding = min == 0 ? 1 : Math.abs(min * 0.1);
+            min -= padding;
+            max += padding;
         } else {
             double pad = (max - min) * 0.2;
             min -= pad;
@@ -226,6 +210,7 @@ public class DashboardController {
         double tickUnit = (max - min) / 3;
         if (tickUnit == 0)
             tickUnit = 1;
+
         yAxis.setAutoRanging(false);
         yAxis.setLowerBound(min);
         yAxis.setUpperBound(max);
@@ -233,51 +218,52 @@ public class DashboardController {
         yAxis.setTickLabelFormatter(new NumberAxis.DefaultFormatter(yAxis) {
             @Override
             public String toString(Number object) {
-                String format = "%." + decimals + "f";
-                return String.format(format, object.doubleValue());
+                return String.format(DateFormattingUtil.APP_LOCALE, "%." + decimals + "f", object.doubleValue());
             }
         });
     }
 
     public void onDistributionGraphMetricChanged(String metric) throws SQLException {
-        PopulationDistributionGraphMetrics pdgMetrics = DashboardCreationService
-                .calculatePopulationDistributionMetrics(activeGroupId, metric);
-
-        setPopulationDistributionGraph(pdgMetrics, metric);
+        setPopulationDistributionGraph(
+                DashboardCreationService.calculatePopulationDistributionMetrics(activeGroupId, metric),
+                metric);
     }
 
     public void onHistoricalGraphChanged(String metric, String period) throws SQLException {
-        HistoricalImportComparisonMetrics metrics = DashboardCreationService
-                .calculateHistoricalImportComparisonMetrics(activeGroupId, metric, period);
-
-        setHistoricalImportComparisonGraph(metrics);
+        setHistoricalImportComparisonGraph(
+                DashboardCreationService.calculateHistoricalImportComparisonMetrics(activeGroupId, metric, period));
     }
 
     public void setPopulationDistributionGraph(PopulationDistributionGraphMetrics metrics, String metric) {
-        populationDistributionGraph.getData().clear();
+        // Same CategoryAxis pitfall as the sparkline: stale categories from the previous
+        // metric stay on the axis, so adding the new series can crash with an out-of-bounds
+        // when BarChart maps the new data into the axis's internal slots.
+        populationDistributionGraph.setAnimated(false);
         populationDistributionGraph.setLegendVisible(false);
 
-        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        CategoryAxis xAxis = (CategoryAxis) populationDistributionGraph.getXAxis();
+        populationDistributionGraph.getData().clear();
+        xAxis.getCategories().clear();
 
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
         for (int i = 0; i < metrics.labels().size(); i++) {
             series.getData().add(new XYChart.Data<>(metrics.labels().get(i), metrics.binCounts().get(i)));
         }
 
         String xAxisLabel = switch (metric) {
-        case "FCR" -> "FCR";
-        case "Feed Cns." -> "kg / day";
-        case "Weight" -> "kg";
-        default -> "";
+            case "FCR" -> "FCR";
+            case "Feed Cns." -> "kg / day";
+            case "Weight" -> "kg";
+            default -> "";
         };
 
         populationDistributionGraph.getData().add(series);
-        populationDistributionGraph.getXAxis().setLabel(xAxisLabel);
+        xAxis.setLabel(xAxisLabel);
         populationDistributionGraph.getYAxis().setLabel("Animals in bracket");
 
-        NumberAxis yAxis = (NumberAxis)populationDistributionGraph.getYAxis();
-        // Compute min/max for the axis, based on your bin counts:
+        NumberAxis yAxis = (NumberAxis) populationDistributionGraph.getYAxis();
         int maxCount = metrics.binCounts().stream().mapToInt(Integer::intValue).max().orElse(2);
-        int maxY = Math.max(2, ((maxCount + 1) / 2) * 2); // next even number ≥ counts
+        int maxY = Math.max(2, ((maxCount + 1) / 2) * 2);
 
         yAxis.setAutoRanging(false);
         yAxis.setLowerBound(0);
@@ -287,60 +273,56 @@ public class DashboardController {
         yAxis.setTickLabelFormatter(new NumberAxis.DefaultFormatter(yAxis) {
             @Override
             public String toString(Number object) {
-                return String.format("%d", object.intValue());
+                return Integer.toString(object.intValue());
             }
         });
         yAxis.setForceZeroInRange(true);
     }
 
     public void setHistoricalImportComparisonGraph(HistoricalImportComparisonMetrics metrics) {
-        historicalImportComparisonGraph.getData().clear();
+        historicalImportComparisonGraph.setAnimated(false);
         historicalImportComparisonGraph.setLegendVisible(false);
 
-        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        CategoryAxis xAxis = (CategoryAxis) historicalImportComparisonGraph.getXAxis();
+        historicalImportComparisonGraph.getData().clear();
+        xAxis.getCategories().clear();
 
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
         List<String> labels = metrics.periods();
         List<Double> values = metrics.values();
-
         for (int i = 0; i < labels.size(); i++) {
             series.getData().add(new XYChart.Data<>(labels.get(i), values.get(i)));
         }
 
         historicalImportComparisonGraph.getData().add(series);
-        historicalImportComparisonGraph.getXAxis().setLabel("Report date");
+        xAxis.setLabel("Report date");
         historicalImportComparisonGraph.getYAxis().setLabel("Percent change (%)");
     }
 
     private void setupPopulationDistributionGraphSection() {
         pdgMetricSegmentedToggleController.setOptions("FCR", "Feed Cns.", "Weight");
-        pdgMetricSegmentedToggleController.addSelectionChangeListener((observable, oldValue, newValue) -> {
-            try {
-                onDistributionGraphMetricChanged(newValue);
-
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        });
+        pdgMetricSegmentedToggleController.addSelectionChangeListener((obs, oldValue, newValue) ->
+                runOrLog(() -> onDistributionGraphMetricChanged(newValue)));
     }
 
     private void setupHistoricalImportGraphSection() {
         hicMetricSegmentedToggleController.setOptions("FCR", "Feed Cns.", "Weight");
         hicPeriodSegmentedToggleController.setOptions("7 Days", "1 Month", "6 Months");
 
-        hicMetricSegmentedToggleController.addSelectionChangeListener((obs, oldValue, newValue) -> {
-            try {
-                onHistoricalGraphChanged(getHicMetric(), getHicPeriod());
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        });
-        hicPeriodSegmentedToggleController.addSelectionChangeListener((obs, oldValue, newValue) -> {
-            try {
-                onHistoricalGraphChanged(getHicMetric(), getHicPeriod());
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        });
+        Consumer<Object> refresh = ignored -> runOrLog(() -> onHistoricalGraphChanged(getHicMetric(), getHicPeriod()));
+        hicMetricSegmentedToggleController.addSelectionChangeListener((obs, oldValue, newValue) -> refresh.accept(null));
+        hicPeriodSegmentedToggleController.addSelectionChangeListener((obs, oldValue, newValue) -> refresh.accept(null));
+    }
+
+    @FunctionalInterface
+    private interface SqlAction { void run() throws SQLException; }
+
+    private static void runOrLog(SqlAction action) {
+        try {
+            action.run();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     private String getPdgMetric() {
@@ -353,21 +335,5 @@ public class DashboardController {
 
     private String getHicPeriod() {
         return hicPeriodSegmentedToggleController.getSelected();
-    }
-
-    private void showInfoAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
-    }
-
-    private void showErrorAlert(String title, String header, String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(header);
-        alert.setContentText(message);
-        alert.showAndWait();
     }
 }

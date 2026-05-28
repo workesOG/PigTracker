@@ -2,93 +2,54 @@
 
 package pigtracker.controller.components;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-
 public class SegmentedToggleController {
 
-    @FXML
-    private HBox container;
+    @FXML private HBox container;
 
     private final ToggleGroup toggleGroup = new ToggleGroup();
     private final List<ToggleButton> buttons = new ArrayList<>();
+    private final ReadOnlyStringWrapper selected = new ReadOnlyStringWrapper();
 
     private ToggleButton pressedButton;
     private boolean allowNoSelection;
 
-    private ChangeListener<String> selectionChangeListener;
+    public SegmentedToggleController() {
+        toggleGroup.selectedToggleProperty().addListener((obs, oldToggle, newToggle) ->
+                selected.set(newToggle == null ? null : ((ToggleButton) newToggle).getText()));
+    }
 
     public void setOptions(String... labels) {
         setOptions(false, labels);
     }
 
     public void setOptions(boolean allowNoSelection, String... labels) {
-
         this.allowNoSelection = allowNoSelection;
-
         container.getChildren().clear();
         buttons.clear();
-
         toggleGroup.selectToggle(null);
-        toggleGroup.selectedToggleProperty().addListener((obs, oldToggle, newToggle) -> {
-            if (selectionChangeListener != null) {
-                String oldSelection = oldToggle == null ? null : ((ToggleButton)oldToggle).getText();
-                String newSelection = newToggle == null ? null : ((ToggleButton)newToggle).getText();
-                selectionChangeListener.changed(new ObservableValue<String>() {
-                    @Override
-                    public void addListener(ChangeListener<? super String> listener) {}
-
-                    @Override
-                    public void removeListener(ChangeListener<? super String> listener) {}
-
-                    @Override
-                    public void addListener(javafx.beans.InvalidationListener listener) {}
-
-                    @Override
-                    public void removeListener(javafx.beans.InvalidationListener listener) {}
-
-                    @Override
-                    public String getValue() {
-                        return newSelection;
-                    }
-                }, oldSelection, newSelection);
-            }
-        });
 
         for (int i = 0; i < labels.length; i++) {
-
             ToggleButton button = new ToggleButton(labels[i]);
-
             button.setToggleGroup(toggleGroup);
-
             button.setMaxWidth(Double.MAX_VALUE);
-
             HBox.setHgrow(button, Priority.ALWAYS);
-
-            if (i == 0)
-                button.getStyleClass().add("segment-left");
-            else if (i == labels.length - 1)
-                button.getStyleClass().add("segment-right");
-            else
-                button.getStyleClass().add("segment-middle");
+            button.getStyleClass().add(segmentStyleClass(i, labels.length));
 
             if (allowNoSelection) {
-
-                button.setOnMousePressed(e -> {
-                    pressedButton = button.isSelected() ? button : null;
-                });
-
+                button.setOnMousePressed(e -> pressedButton = button.isSelected() ? button : null);
                 button.setOnAction(e -> {
-
                     if (pressedButton == button) {
                         toggleGroup.selectToggle(null);
                         pressedButton = null;
@@ -100,14 +61,24 @@ public class SegmentedToggleController {
             buttons.add(button);
         }
 
-        if (!allowNoSelection && !buttons.isEmpty())
+        if (!allowNoSelection && !buttons.isEmpty()) {
             buttons.get(0).setSelected(true);
-
+        }
         container.setFillHeight(true);
     }
 
-    public void addSelectionChangeListener(ChangeListener<String> listener) {
-        this.selectionChangeListener = listener;
+    private static String segmentStyleClass(int index, int total) {
+        if (index == 0) return "segment-left";
+        if (index == total - 1) return "segment-right";
+        return "segment-middle";
+    }
+
+    public ReadOnlyStringProperty selectedProperty() {
+        return selected.getReadOnlyProperty();
+    }
+
+    public void addSelectionChangeListener(ChangeListener<? super String> listener) {
+        selected.addListener(listener);
     }
 
     public void setSelected(String label) {
@@ -116,22 +87,16 @@ public class SegmentedToggleController {
             throw new IllegalArgumentException("Option not found: " + label);
         }
         button.setSelected(true);
-
     }
 
     public void clearSelection() {
-
         if (!allowNoSelection)
             throw new IllegalStateException("Selection cannot be cleared");
-
         toggleGroup.selectToggle(null);
     }
 
     public String getSelected() {
-
-        ToggleButton selected = (ToggleButton)toggleGroup.getSelectedToggle();
-
-        return selected == null ? null : selected.getText();
+        return selected.get();
     }
 
     public boolean hasSelection() {
