@@ -2,161 +2,99 @@
 
 package pigtracker.dao;
 
-import pigtracker.model.Report;
-
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import pigtracker.model.Report;
+
 public final class ReportDAO {
+
+    private static final String COLUMNS = "id, group_id, import_start, import_end, row_count, pig_count, status, "
+            + "created_by, created_at";
+    private static final String SELECT_ALL = "SELECT " + COLUMNS + " FROM Reports";
 
     private ReportDAO() {}
 
     // Inserts a new report and returns it, including the database-generated id.
     public static Report create(Report report) throws SQLException {
-        String sql = "INSERT INTO Reports (group_id, import_start, import_end, row_count, pig_count, created_by) VALUES (?, ?, ?, ?, ?, ?)";
-        try (Connection conn = ConnectionDAO.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            bindReport(ps, report);
-            ps.executeUpdate();
-            try (ResultSet keys = ps.getGeneratedKeys()) {
-                int id = keys.next() ? keys.getInt(1) : -1;
-                return report.withId(id);
-            }
-        }
+        int id = Db.insertReturningId(
+                "INSERT INTO Reports (group_id, import_start, import_end, row_count, pig_count, created_by) "
+                        + "VALUES (?, ?, ?, ?, ?, ?)",
+                ps -> {
+                    ps.setInt(1, report.groupId());
+                    ps.setObject(2, report.importStart());
+                    ps.setObject(3, report.importEnd());
+                    ps.setInt(4, report.rowCount());
+                    ps.setInt(5, report.pigCount());
+                    ps.setInt(6, report.createdBy());
+                });
+        return report.withId(id);
     }
 
     // Returns the report with the given id, or empty if it does not exist.
     public static Optional<Report> findById(int id) throws SQLException {
-        String sql = "SELECT id, group_id, import_start, import_end, row_count, pig_count, status, created_by, created_at FROM Reports WHERE id = ?";
-        try (Connection conn = ConnectionDAO.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() ? Optional.of(mapRow(rs)) : Optional.empty();
-            }
-        }
+        return Db.findOne(SELECT_ALL + " WHERE id = ?", ps -> ps.setInt(1, id), ReportDAO::mapRow);
     }
 
     // Returns every report, newest first.
     public static List<Report> getAll() throws SQLException {
-        String sql = "SELECT id, group_id, import_start, import_end, row_count, pig_count, status, created_by, created_at FROM Reports ORDER BY created_at DESC";
-        List<Report> reports = new ArrayList<>();
-
-        try (Connection conn = ConnectionDAO.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                reports.add(mapRow(rs));
-            }
-        }
-
-        return reports;
+        return Db.findMany(SELECT_ALL + " ORDER BY created_at DESC", Db.NO_PARAMS, ReportDAO::mapRow);
     }
 
     // Theis Thomsen
     // Returns only completed reports, newest first.
     public static List<Report> getAllCompleted() throws SQLException {
-        String sql = "SELECT id, group_id, import_start, import_end, row_count, pig_count, status, created_by, created_at FROM Reports WHERE status = ? ORDER BY created_at DESC";
-        List<Report> reports = new ArrayList<>();
-
-        try (Connection conn = ConnectionDAO.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, pigtracker.model.Report.Status.COMPLETE.name());
-
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    reports.add(mapRow(rs));
-                }
-            }
-        }
-        return reports;
+        return Db.findMany(SELECT_ALL + " WHERE status = ? ORDER BY created_at DESC",
+                ps -> ps.setString(1, Report.Status.COMPLETE.name()), ReportDAO::mapRow);
     }
 
     // Returns all reports created by the given user, newest first.
     public static List<Report> findByCreatedBy(int userId) throws SQLException {
-        String sql = "SELECT id, group_id, import_start, import_end, row_count, pig_count, status, created_by, created_at FROM Reports WHERE created_by = ? ORDER BY created_at DESC";
-        List<Report> reports = new ArrayList<>();
-
-        try (Connection conn = ConnectionDAO.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, userId);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    reports.add(mapRow(rs));
-                }
-            }
-        }
-
-        return reports;
+        return Db.findMany(SELECT_ALL + " WHERE created_by = ? ORDER BY created_at DESC",
+                ps -> ps.setInt(1, userId), ReportDAO::mapRow);
     }
 
-    //Theis Thomsen
+    // Theis Thomsen
     public static List<Report> findCompletedByGroupId(int groupId) throws SQLException {
-        String sql = "SELECT id, group_id, import_start, import_end, row_count, pig_count, status, created_by, created_at FROM Reports WHERE group_id = ? AND status = ? ORDER BY created_at DESC";
-        List<Report> reports = new ArrayList<>();
-        try (Connection conn = ConnectionDAO.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+        return Db.findMany(SELECT_ALL + " WHERE group_id = ? AND status = ? ORDER BY created_at DESC", ps -> {
             ps.setInt(1, groupId);
             ps.setString(2, Report.Status.COMPLETE.name());
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    reports.add(mapRow(rs));
-                }
-            }
-        }
-        return reports;
+        }, ReportDAO::mapRow);
     }
 
     // Deletes the report with the given id; returns true if a row was removed.
     public static boolean delete(int id) throws SQLException {
-        String sql = "DELETE FROM Reports WHERE id = ?";
-
-        try (Connection conn = ConnectionDAO.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, id);
-
-            return ps.executeUpdate() > 0;
-        }
+        return Db.executeUpdate("DELETE FROM Reports WHERE id = ?", ps -> ps.setInt(1, id)) > 0;
     }
 
     // Theis Thomsen
     public static void deleteAllInProgress() throws SQLException {
-        String sql = "DELETE FROM Reports WHERE status = ?";
-        try (Connection conn = ConnectionDAO.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, Report.Status.IN_PROGRESS.name());
-            ps.executeUpdate();
-        }
+        Db.executeUpdate("DELETE FROM Reports WHERE status = ?",
+                ps -> ps.setString(1, Report.Status.IN_PROGRESS.name()));
     }
 
     // Theis Thomsen
     // Updates the status of a report with the given id.
     public static void updateStatus(int reportId, Report.Status status) throws SQLException {
-        String sql = "UPDATE Reports SET status = ? WHERE id = ?";
-        try (Connection conn = ConnectionDAO.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+        Db.executeUpdate("UPDATE Reports SET status = ? WHERE id = ?", ps -> {
             ps.setString(1, status.name());
             ps.setInt(2, reportId);
-            ps.executeUpdate();
-        }
+        });
     }
 
-    // Binds the five insert columns (everything except id and created_at) onto the statement.
-    private static void bindReport(PreparedStatement ps, Report r) throws SQLException {
-        ps.setInt(1, r.groupId()); // ADD FOR group_id
-        ps.setObject(2, r.importStart());
-        ps.setObject(3, r.importEnd());
-        ps.setInt(4, r.rowCount());
-        ps.setInt(5, r.pigCount());
-        ps.setInt(6, r.createdBy());
-    }
-
-    // Builds a Report object from the current row of the given ResultSet.
     private static Report mapRow(ResultSet rs) throws SQLException {
-        return new Report(rs.getInt("id"), rs.getInt("group_id"), rs.getObject("import_start", LocalDateTime.class),
-                rs.getObject("import_end", LocalDateTime.class), rs.getInt("row_count"), rs.getInt("pig_count"),
-                Report.Status.valueOf(rs.getString("status").trim().toUpperCase()), rs.getInt("created_by"),
+        return new Report(
+                rs.getInt("id"),
+                rs.getInt("group_id"),
+                rs.getObject("import_start", LocalDateTime.class),
+                rs.getObject("import_end", LocalDateTime.class),
+                rs.getInt("row_count"),
+                rs.getInt("pig_count"),
+                Report.Status.valueOf(rs.getString("status").trim().toUpperCase()),
+                rs.getInt("created_by"),
                 rs.getObject("created_at", LocalDateTime.class));
     }
 }

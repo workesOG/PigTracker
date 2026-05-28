@@ -2,150 +2,90 @@
 
 package pigtracker.dao;
 
-import pigtracker.model.Animal;
-
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import pigtracker.model.Animal;
+
 public final class AnimalDAO {
+
+    private static final String COLUMNS = "id, animal_number, responder, group_id, location, status, stopped_reason, "
+            + "stopped_at, fcr, start_weight_kg, total_feed_kg, weight_gain_kg, latest_weight_kg, completed_days, "
+            + "start_day, created_at";
+    private static final String SELECT_ALL = "SELECT " + COLUMNS + " FROM Animals";
+    private static final String INSERT = "INSERT INTO Animals (animal_number, responder, group_id, location, status, "
+            + "stopped_reason, stopped_at, fcr, start_weight_kg, total_feed_kg, weight_gain_kg, latest_weight_kg, "
+            + "completed_days, start_day) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    private static final String UPDATE = "UPDATE Animals SET animal_number = ?, responder = ?, group_id = ?, "
+            + "location = ?, status = ?, stopped_reason = ?, stopped_at = ?, fcr = ?, start_weight_kg = ?, "
+            + "total_feed_kg = ?, weight_gain_kg = ?, latest_weight_kg = ?, completed_days = ?, start_day = ? "
+            + "WHERE id = ?";
 
     private AnimalDAO() {}
 
     // Inserts a new animal and returns it, including the database-generated id.
     public static Animal create(Animal animal) throws SQLException {
-        String sql = "INSERT INTO Animals (animal_number, responder, group_id, location, status, stopped_reason, stopped_at, fcr, start_weight_kg, total_feed_kg, weight_gain_kg, latest_weight_kg, completed_days, start_day) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        try (Connection conn = ConnectionDAO.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            bindAnimal(ps, animal);
-            ps.executeUpdate();
-            try (ResultSet keys = ps.getGeneratedKeys()) {
-                int id = keys.next() ? keys.getInt(1) : -1;
-                return animal.withId(id);
-            }
-        }
+        int id = Db.insertReturningId(INSERT, ps -> bindAnimal(ps, animal));
+        return animal.withId(id);
     }
 
     // Returns the animal with the given id, or empty if it does not exist.
     public static Optional<Animal> findById(int id) throws SQLException {
-        String sql = "SELECT id, animal_number, responder, group_id, location, status, stopped_reason, stopped_at, fcr, start_weight_kg, total_feed_kg, weight_gain_kg, latest_weight_kg, completed_days, start_day, created_at FROM Animals WHERE id = ?";
-        try (Connection conn = ConnectionDAO.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() ? Optional.of(mapRow(rs)) : Optional.empty();
-            }
-        }
+        return Db.findOne(SELECT_ALL + " WHERE id = ?", ps -> ps.setInt(1, id), AnimalDAO::mapRow);
     }
 
     // Returns the animal with the given responder (RFID tag), or empty if none.
     public static Optional<Animal> findByResponder(String responder) throws SQLException {
-        String sql = "SELECT id, animal_number, responder, group_id, location, status, stopped_reason, stopped_at, fcr, start_weight_kg, total_feed_kg, weight_gain_kg, latest_weight_kg, completed_days, start_day, created_at FROM Animals WHERE responder = ?";
-
-        try (Connection conn = ConnectionDAO.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, responder);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() ? Optional.of(mapRow(rs)) : Optional.empty();
-            }
-        }
+        return Db.findOne(SELECT_ALL + " WHERE responder = ?", ps -> ps.setString(1, responder), AnimalDAO::mapRow);
     }
 
     // Theis Thomsen
     // Returns the animal with the given animal number, or empty if none exists.
     public static Optional<Animal> findByAnimalNumber(int animalNumber) throws SQLException {
-        String sql = "SELECT id, animal_number, responder, group_id, location, status, stopped_reason, stopped_at, fcr, start_weight_kg, total_feed_kg, weight_gain_kg, latest_weight_kg, completed_days, start_day, created_at FROM Animals WHERE animal_number = ?";
-        try (Connection conn = ConnectionDAO.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, animalNumber);
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() ? Optional.of(mapRow(rs)) : Optional.empty();
-            }
-        }
+        return Db.findOne(SELECT_ALL + " WHERE animal_number = ?",
+                ps -> ps.setInt(1, animalNumber), AnimalDAO::mapRow);
     }
 
     // Returns every animal, ordered by location and animal number.
     public static List<Animal> getAll() throws SQLException {
-        String sql = "SELECT id, animal_number, responder, group_id, location, status, stopped_reason, stopped_at, fcr, start_weight_kg, total_feed_kg, weight_gain_kg, latest_weight_kg, completed_days, start_day, created_at FROM Animals ORDER BY location, animal_number";
-        List<Animal> animals = new ArrayList<>();
-
-        try (Connection conn = ConnectionDAO.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                animals.add(mapRow(rs));
-            }
-        }
-
-        return animals;
+        return Db.findMany(SELECT_ALL + " ORDER BY location, animal_number", Db.NO_PARAMS, AnimalDAO::mapRow);
     }
 
-    // Returns all animals with the given status - used when filtering the herd.
+    // Returns all animals with the given status — used when filtering the herd.
     public static List<Animal> findByStatus(Animal.Status status) throws SQLException {
-        String sql = "SELECT id, animal_number, responder, group_id, location, status, stopped_reason, stopped_at, fcr, start_weight_kg, total_feed_kg, weight_gain_kg, latest_weight_kg, completed_days, start_day, created_at FROM Animals WHERE status = ? ORDER BY location, animal_number";
-        List<Animal> animals = new ArrayList<>();
-
-        try (Connection conn = ConnectionDAO.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, status.name());
-
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    animals.add(mapRow(rs));
-                }
-            }
-        }
-
-        return animals;
+        return Db.findMany(SELECT_ALL + " WHERE status = ? ORDER BY location, animal_number",
+                ps -> ps.setString(1, status.name()), AnimalDAO::mapRow);
     }
 
     // Updates an existing animal by id; returns true if a row was changed.
     public static boolean update(Animal animal) throws SQLException {
-        String sql = "UPDATE Animals SET animal_number = ?, responder = ?, group_id = ?, location = ?, status = ?, stopped_reason = ?, stopped_at = ?, fcr = ?, start_weight_kg = ?, total_feed_kg = ?, weight_gain_kg = ?, latest_weight_kg = ?, completed_days = ?, start_day = ? WHERE id = ?";
-
-        try (Connection conn = ConnectionDAO.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+        return Db.executeUpdate(UPDATE, ps -> {
             bindAnimal(ps, animal);
             ps.setInt(15, animal.id());
-
-            return ps.executeUpdate() > 0;
-        }
+        }) > 0;
     }
 
     // Deletes the animal with the given id; returns true if a row was removed.
     public static boolean delete(int id) throws SQLException {
-        String sql = "DELETE FROM Animals WHERE id = ?";
-
-        try (Connection conn = ConnectionDAO.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, id);
-
-            return ps.executeUpdate() > 0;
-        }
+        return Db.executeUpdate("DELETE FROM Animals WHERE id = ?", ps -> ps.setInt(1, id)) > 0;
     }
 
     public static Optional<Integer> getGroupIdByAnimalNumber(int animalNumber) throws SQLException {
-        String sql = "SELECT group_id FROM Animals WHERE animal_number = ?";
-        try (Connection conn = ConnectionDAO.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, animalNumber);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return Optional.of(rs.getInt("group_id"));
-                } else {
-                    return Optional.empty();
-                }
-            }
-        }
+        return Db.findOne("SELECT group_id FROM Animals WHERE animal_number = ?",
+                ps -> ps.setInt(1, animalNumber),
+                rs -> rs.getInt("group_id"));
     }
 
     // Binds the 14 insert/update columns (everything except id and created_at) onto the statement.
     private static void bindAnimal(PreparedStatement ps, Animal a) throws SQLException {
         ps.setInt(1, a.animalNumber());
         ps.setString(2, a.responder());
-        ps.setInt(3, a.groupId()); // NEW BIND HERE
+        ps.setInt(3, a.groupId());
         ps.setInt(4, a.location());
         ps.setString(5, a.status().name());
         ps.setObject(6, a.stoppedReason());
@@ -159,28 +99,23 @@ public final class AnimalDAO {
         ps.setObject(14, a.startDay());
     }
 
-    // Builds an Animal object from the current row of the given ResultSet.
     private static Animal mapRow(ResultSet rs) throws SQLException {
-        return new Animal(rs.getInt("id"), rs.getInt("animal_number"), rs.getString("responder"), rs.getInt("group_id"),
-                rs.getInt("location"), Animal.Status.valueOf(rs.getString("status").trim().toUpperCase()),
-                rs.getString("stopped_reason"), rs.getObject("stopped_at", LocalDateTime.class),
-                getNullableDouble(rs, "fcr"), getNullableDouble(rs, "start_weight_kg"),
-                getNullableDouble(rs, "total_feed_kg"), getNullableDouble(rs, "weight_gain_kg"),
-                getNullableDouble(rs, "latest_weight_kg"), getNullableInt(rs, "completed_days"),
-                rs.getObject("start_day", LocalDate.class), rs.getObject("created_at", LocalDateTime.class));
-    }
-
-    // Reads an int column that may be NULL, returning null instead of 0.
-    private static Integer getNullableInt(ResultSet rs, String column) throws SQLException {
-        int value = rs.getInt(column);
-
-        return rs.wasNull() ? null : value;
-    }
-
-    // Reads a decimal column that may be NULL, returning null instead of 0.0.
-    private static Double getNullableDouble(ResultSet rs, String column) throws SQLException {
-        double value = rs.getDouble(column);
-
-        return rs.wasNull() ? null : value;
+        return new Animal(
+                rs.getInt("id"),
+                rs.getInt("animal_number"),
+                rs.getString("responder"),
+                rs.getInt("group_id"),
+                rs.getInt("location"),
+                Animal.Status.valueOf(rs.getString("status").trim().toUpperCase()),
+                rs.getString("stopped_reason"),
+                rs.getObject("stopped_at", LocalDateTime.class),
+                Db.nullableDouble(rs, "fcr"),
+                Db.nullableDouble(rs, "start_weight_kg"),
+                Db.nullableDouble(rs, "total_feed_kg"),
+                Db.nullableDouble(rs, "weight_gain_kg"),
+                Db.nullableDouble(rs, "latest_weight_kg"),
+                Db.nullableInt(rs, "completed_days"),
+                rs.getObject("start_day", LocalDate.class),
+                rs.getObject("created_at", LocalDateTime.class));
     }
 }
