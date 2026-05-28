@@ -22,68 +22,69 @@ public class Main extends Application {
         return primaryStage;
     }
 
+    public static void main(String[] args) {
+        launch();
+    }
+
     @Override
     public void start(Stage stage) throws Exception {
-
         primaryStage = stage;
+        primaryStage.setResizable(false);
 
         if (hasSavedSession()) {
             showMainView();
         } else {
             showLoginView();
         }
-
         primaryStage.show();
 
-        try (Connection conn = ConnectionDAO.getConnection()) {
-            System.out.println("Connected. Database: " + conn.getCatalog());
-        } catch (Exception e) {
-            System.out.println("FAILED to connect:");
-            e.printStackTrace();
-        }
-
-        try {
-            DatabaseCleanupService.cleanupInProgressGroupsAndReports();
-        } catch (SQLException e) {
-            System.out.println("FAILED to clean up database:");
-            e.printStackTrace();
-        }
-    }
-
-    public static void main(String[] args) {
-        launch();
+        verifyDatabaseConnection();
+        cleanUpInProgressData();
     }
 
     public static void onDashboardReady() throws Exception {
         AppContext.getDashboardController().setDashboardMetrics();
     }
 
+    public static void showLoginView() throws Exception {
+        showScene("/views/login-view.fxml", "Login");
+    }
+
+    public static void showMainView() throws Exception {
+        showScene("/views/main-view.fxml", "PPT Manager Interface");
+    }
+
+    private static void showScene(String fxmlPath, String title) throws Exception {
+        FXMLLoader loader = new FXMLLoader(Main.class.getResource(fxmlPath));
+        primaryStage.setScene(new Scene(loader.load()));
+        primaryStage.setTitle(title);
+    }
+
+    // Af Nikolaj Jakobsen
     private boolean hasSavedSession() {
-        // Af Nikolaj Jakobsen
         try {
             return UserService.restoreSession();
         } catch (Exception e) {
             e.printStackTrace();
-
             return false;
         }
     }
 
-    public static void showLoginView() throws Exception {
-        FXMLLoader loader = new FXMLLoader(Main.class.getResource("/views/login-view.fxml"));
-
-        Scene scene = new Scene(loader.load());
-
-        primaryStage.setScene(scene);
-        primaryStage.setTitle("Login");
+    private static void verifyDatabaseConnection() {
+        try (Connection conn = ConnectionDAO.getConnection()) {
+            System.out.println("Connected. Database: " + conn.getCatalog());
+        } catch (Exception e) {
+            System.out.println("FAILED to connect:");
+            e.printStackTrace();
+        }
     }
 
-    public static void showMainView() throws Exception {
-        FXMLLoader loader = new FXMLLoader(Main.class.getResource("/views/main-view.fxml"));
-
-        Scene scene = new Scene(loader.load());
-
-        primaryStage.setScene(scene);
-        primaryStage.setTitle("PPT Manager Interface");
+    private static void cleanUpInProgressData() {
+        try {
+            DatabaseCleanupService.cleanupInProgressGroupsAndReports();
+        } catch (SQLException e) {
+            System.out.println("FAILED to clean up database:");
+            e.printStackTrace();
+        }
     }
 }
