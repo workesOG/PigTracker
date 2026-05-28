@@ -72,7 +72,7 @@ public class DashboardController {
         setupPopulationDistributionGraphSection();
         setupHistoricalImportGraphSection();
         setGroup(GroupHandlingService.getFirstGroup());
-        updateLabelCreationButton();
+        updateGroupCreationButton();
         Main.onDashboardReady();
     }
 
@@ -86,7 +86,7 @@ public class DashboardController {
         activeGroupLabel.setText(String.format("#%s", group.name()));
     }
 
-    public void updateLabelCreationButton() throws SQLException {
+    public void updateGroupCreationButton() throws SQLException {
         setGroupButton.setDisable(!GroupHandlingService.doesDatabaseHoldAtLeastTwoGroups());
     }
 
@@ -119,12 +119,12 @@ public class DashboardController {
         }
     }
 
-    public void setAndUpdateDashboardIfEmpty() throws SQLException {
-        updateLabelCreationButton();
+    public void setAndUpdateDashboard() throws SQLException {
+        updateGroupCreationButton();
         if (activeGroupId == null) {
             setGroup(GroupHandlingService.getFirstGroup());
-            setDashboardMetrics();
         }
+        setDashboardMetrics();
     }
 
     public void setDashboardMetrics() throws SQLException {

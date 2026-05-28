@@ -4,6 +4,7 @@ package pigtracker.controller;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -12,22 +13,28 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Button;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import pigtracker.controller.components.InspectorFieldController;
+import pigtracker.dao.AnimalDAO;
 import pigtracker.dao.VisitDAO;
 import pigtracker.model.Animal;
+import pigtracker.model.InspectorOptions;
 import pigtracker.model.MetricColumn;
 import pigtracker.model.MetricOption;
 import pigtracker.model.Visit;
+import pigtracker.service.AnimalUpdateService;
 import pigtracker.util.AppContext;
 
 public class DataController {
@@ -60,11 +67,18 @@ public class DataController {
     private Map<String, TextField> inspectorEditors;
     private Map<String, String> originalValues;
 
+    private List<MetricColumn> animalColumns;
+    private List<MetricColumn> visitColumns;
+
     @FXML
     public void initialize() {
         AppContext.setDataController(this);
         loadAnimalMetrics();
         loadVisitMetrics();
+        setupMetrics(animalDataController, animalColumns, getAnimalInspectorOptions());
+        setupMetrics(visitDataController, visitColumns, null);
+        loadAnimalData();
+        loadVisitData();
 
         addTabPaneListener();
     }
@@ -85,7 +99,6 @@ public class DataController {
             String editedValue = tf.getText();
             String originalValue = originalValues.get(col.getLabel());
 
-            // Only update if changed
             if (Objects.equals(editedValue, originalValue))
                 continue;
 
@@ -130,7 +143,7 @@ public class DataController {
         updateButtonStates();
     }
 
-    private void setupMetrics(SpecificDataController controller, List<MetricColumn> columns, boolean enableDateFilter) {
+    private void setupMetrics(SpecificDataController controller, List<MetricColumn> columns, InspectorOptions options) {
         ArrayList<MetricOption> metricOptions = new ArrayList<>();
         Map<MetricOption, Function<Object, Object>> extractors = new HashMap<>();
         Map<MetricOption, Function<Object, String>> formatters = new HashMap<>();
@@ -144,8 +157,9 @@ public class DataController {
         controller.setMetrics(metricOptions);
         controller.setMetricExtractors(extractors);
         controller.setMetricFormatters(formatters);
-        controller.enableDateFilters(enableDateFilter);
+        controller.enableDateFilters(true);
         controller.setColumns(columns);
+        controller.setInspectorOptions(options);
     }
 
     public void clearInspector() {
@@ -159,17 +173,17 @@ public class DataController {
     }
 
     private void loadAnimalMetrics() {
-        java.time.format.DateTimeFormatter dateFmt = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        List<MetricColumn> animalColumns = List.of(
+        DateTimeFormatter dateFmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        animalColumns = List.of(
                 new MetricColumn("ID", MetricOption.MetricType.INTEGER, new Boolean[] { true, true, true, true },
                         r -> ((Animal)r).id(), val -> val == null ? "" : val.toString(), false, null),
                 new MetricColumn("Animal Number", MetricOption.MetricType.INTEGER,
                         new Boolean[] { true, true, true, true }, r -> ((Animal)r).animalNumber(),
-                        val -> val == null ? "" : val.toString(), true,
-                        (row, newValue) -> System.out.println("Success")),
+                        val -> val == null ? "" : val.toString(), true, (row, newValue) -> {
+                            AnimalUpdateService.updateAnimalNumber(row, newValue, this::loadAnimalData);
+                        }),
                 new MetricColumn("Responder", MetricOption.MetricType.STRING, new Boolean[] { true, true, true, true },
-                        r -> ((Animal)r).responder(), val -> val == null ? "" : val.toString(), true,
-                        (row, newValue) -> System.out.println("Success")),
+                        r -> ((Animal)r).responder(), val -> val == null ? "" : val.toString(), false, null),
                 new MetricColumn("Group ID", MetricOption.MetricType.INTEGER, new Boolean[] { true, true, true, true },
                         r -> ((Animal)r).groupId(), val -> val == null ? "" : val.toString(), false, null),
                 new MetricColumn("FCR", MetricOption.MetricType.DECIMAL, new Boolean[] { true, true, true, true },
@@ -198,20 +212,93 @@ public class DataController {
                         }, false, null),
                 new MetricColumn("Location", MetricOption.MetricType.INTEGER, new Boolean[] { true, true, true, true },
                         r -> ((Animal)r).location(), val -> val == null ? "" : val.toString(), false, null));
-        setupMetrics(animalDataController, animalColumns, true);
+    }
+
+    private InspectorOptions getAnimalInspectorOptions() {
+        InspectorOptions animalInspectorOptions = new InspectorOptions();
+
+        // Status field: Visible always
+        animalInspectorOptions.addField(new InspectorOptions.Field("Status", row -> {
+            if (!(row instanceof Animal a))
+                return "";
+            return a.status().name();
+        }, true, obj -> true));
+
+        animalInspectorOptions.addField(new InspectorOptions.Field("Stopped Reason",
+                row -> row instanceof Animal a ? String.valueOf(a.stoppedReason()) : "", true,
+                row -> row instanceof Animal a && a.status() == Animal.Status.STOPPED));
+        animalInspectorOptions.addField(new InspectorOptions.Field("Stopped At",
+                row -> row instanceof Animal a && a.stoppedAt() != null ? a.stoppedAt().toString() : "", true,
+                row -> row instanceof Animal a && a.status() == Animal.Status.STOPPED));
+
+        animalInspectorOptions.addButton(new InspectorOptions.Button("Discontinue Animal",
+                row -> row instanceof Animal a && a.status() == Animal.Status.ACTIVE, row -> {
+                    if (!(row instanceof Animal animal))
+                        return;
+                    Platform.runLater(() -> {
+                        TextInputDialog dialog = new TextInputDialog();
+                        dialog.setTitle("Discontinue Animal");
+                        dialog.setHeaderText("Please enter a reason for discontinuation (optional):");
+                        dialog.setContentText("Reason:");
+
+                        Optional<String> result = dialog.showAndWait();
+                        if (result.isPresent()) {
+                            String reason = result.get();
+                            Animal updated = new Animal(animal.id(), animal.animalNumber(), animal.responder(),
+                                    animal.groupId(), animal.location(), Animal.Status.STOPPED, reason,
+                                    LocalDateTime.now(), animal.fcr(), animal.startWeightKg(), animal.totalFeedKg(),
+                                    animal.weightGainKg(), animal.latestWeightKg(), animal.completedDays(),
+                                    animal.startDay(), animal.createdAt());
+                            try {
+                                AnimalDAO.update(updated);
+                                loadAnimalData();
+                                clearInspector();
+                            } catch (Exception ex) {
+                                ex.printStackTrace();
+                            }
+                        }
+                    });
+                }));
+
+        animalInspectorOptions.addButton(new InspectorOptions.Button("Reactivate Animal",
+                row -> row instanceof Animal a && a.status() == Animal.Status.STOPPED, row -> {
+                    if (!(row instanceof Animal animal))
+                        return;
+                    Animal updated = new Animal(animal.id(), animal.animalNumber(), animal.responder(),
+                            animal.groupId(), animal.location(), Animal.Status.ACTIVE, null, null, animal.fcr(),
+                            animal.startWeightKg(), animal.totalFeedKg(), animal.weightGainKg(),
+                            animal.latestWeightKg(), animal.completedDays(), animal.startDay(), animal.createdAt());
+                    try {
+                        AnimalDAO.update(updated);
+                        loadAnimalData();
+                        clearInspector();
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }));
+
+        return animalInspectorOptions;
+    }
+
+    public void loadAnimalData() {
         List<Animal> allAnimals;
         try {
             allAnimals = pigtracker.dao.AnimalDAO.getAll();
         } catch (Exception e) {
             allAnimals = List.of();
-            // Optionally log/show error
         }
-        animalDataController.setData(new ArrayList<>(allAnimals));
+        boolean showDiscontinued = AppContext.getMainController() != null
+                && AppContext.getMainController().isShowDiscontinuedAnimals();
+
+        List<Animal> filteredList = allAnimals.stream().filter(animal -> showDiscontinued || animal.isActive())
+                .toList();
+
+        animalDataController.setData(new ArrayList<>(filteredList));
     }
 
     private void loadVisitMetrics() {
         DateTimeFormatter dateTimeFmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-        List<MetricColumn> visitColumns = List.of(
+        visitColumns = List.of(
                 new MetricColumn("ID", MetricOption.MetricType.INTEGER, new Boolean[] { true, true, true, true },
                         r -> ((Visit)r).id(), val -> val == null ? "" : val.toString(), false, null),
                 new MetricColumn("Animal Number", MetricOption.MetricType.INTEGER,
@@ -240,7 +327,9 @@ public class DataController {
                 new MetricColumn("Feed Intake (g)", MetricOption.MetricType.INTEGER,
                         new Boolean[] { true, true, true, true }, r -> ((Visit)r).feedIntakeG(),
                         val -> val == null ? "" : val.toString(), false, null));
-        setupMetrics(visitDataController, visitColumns, true);
+    }
+
+    public void loadVisitData() {
         List<Visit> allVisits;
         try {
             allVisits = VisitDAO.getAll();
@@ -267,32 +356,31 @@ public class DataController {
         inspectorUpdateButton.setDisable(!(anyDirty && allValid));
     }
 
-    public void populateInspector(Object selectedRow, List<MetricColumn> columns) throws IOException {
+    public void populateInspector(Object selectedRow, List<MetricColumn> columns, InspectorOptions options)
+            throws IOException {
         inspectorFieldContainer.getChildren().clear();
 
         Map<String, String> originalValues = new HashMap<>();
         Map<String, TextField> editors = new HashMap<>();
-        List<MetricColumn> editableColumns = columns.stream().filter(c -> c.isEditable()).toList();
+        List<MetricColumn> editableColumns = columns.stream().filter(MetricColumn::isEditable).toList();
 
-        for (MetricColumn col : columns) {
+        for (MetricColumn column : columns) {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/components/inspector-field.fxml"));
             HBox fieldRow = loader.load();
             InspectorFieldController fieldController = loader.getController();
-
-            String originalValue = col.getFormatter().apply(col.getExtractor().apply(selectedRow));
-            fieldController.getValueLabel().setText(col.getLabel());
+            String originalValue = column.getFormatter().apply(column.getExtractor().apply(selectedRow));
+            fieldController.getValueLabel().setText(column.getLabel());
             fieldController.getValueField().setText(originalValue);
-            fieldController.getValueField().setEditable(col.isEditable());
-
-            String fieldKey = col.getLabel();
+            fieldController.getValueField().setEditable(column.isEditable());
+            String fieldKey = column.getLabel();
             originalValues.put(fieldKey, originalValue);
             editors.put(fieldKey, fieldController.getValueField());
 
-            if (!col.isEditable()) {
+            if (!column.isEditable()) {
                 fieldController.getValueField().setStyle("-fx-background-color: #F4F4F4;");
             } else {
                 fieldController.getValueField().textProperty().addListener((obs, oldVal, newVal) -> {
-                    boolean valid = validateField(newVal, col.getType());
+                    boolean valid = validateField(newVal, column.getType());
                     if (!valid) {
                         fieldController.getValueField().getStyleClass().add("invalid-field");
                     } else {
@@ -304,6 +392,30 @@ public class DataController {
             }
             inspectorFieldContainer.getChildren().add(fieldRow);
         }
+
+        if (options != null) {
+            for (var extraField : options.getExtraFields()) {
+                if (extraField.visibleIf != null && !extraField.visibleIf.test(selectedRow))
+                    continue;
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/components/inspector-field.fxml"));
+                HBox fieldRow = loader.load();
+                InspectorFieldController fieldController = loader.getController();
+                fieldController.getValueLabel().setText(extraField.label);
+                fieldController.getValueField().setText(extraField.valueFunction.apply(selectedRow));
+                fieldController.getValueField().setEditable(false);
+                fieldController.getValueField().setStyle("-fx-background-color: #F4F4F4;");
+                inspectorFieldContainer.getChildren().add(fieldRow);
+            }
+
+            for (var button : options.getExtraButtons()) {
+                if (button.visibleIf != null && !button.visibleIf.test(selectedRow))
+                    continue;
+                Button btn = new Button(button.label);
+                btn.setOnAction(evt -> button.onClick.accept(selectedRow));
+                inspectorFieldContainer.getChildren().add(btn);
+            }
+        }
+
         this.originalValues = originalValues;
         this.inspectorRow = selectedRow;
         this.inspectorColumns = editableColumns;

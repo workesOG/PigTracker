@@ -56,7 +56,8 @@ public final class VisitDAO {
         }
     }
 
-    // Returns all visits for one animal (by responder), oldest first. Used to show its eating events.
+    // Returns all visits for one animal (by responder), oldest first. Used to show
+    // its eating events.
     public static List<Visit> findByResponder(String responder) throws SQLException {
         String sql = "SELECT id, animal_number, responder, report_id, location, visit_time, duration_sec, weight_g, feed_intake_g FROM Visits WHERE responder = ? ORDER BY visit_time";
         List<Visit> visits = new ArrayList<>();
@@ -126,7 +127,8 @@ public final class VisitDAO {
         return visits;
     }
 
-    // Deletes all visits for one animal (by responder); returns the number of rows removed.
+    // Deletes all visits for one animal (by responder); returns the number of rows
+    // removed.
     public static int deleteByResponder(String responder) throws SQLException {
         String sql = "DELETE FROM Visits WHERE responder = ?";
 
@@ -134,6 +136,15 @@ public final class VisitDAO {
             ps.setString(1, responder);
 
             return ps.executeUpdate();
+        }
+    }
+
+    // Theis Thomsen
+    public static int deleteByReportId(int reportId) throws SQLException {
+        String sql = "DELETE FROM Visits WHERE report_id = ?";
+        try (Connection conn = ConnectionDAO.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, reportId);
+            return ps.executeUpdate(); // returns number of rows deleted
         }
     }
 

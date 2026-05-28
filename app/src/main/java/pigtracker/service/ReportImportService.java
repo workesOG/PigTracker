@@ -44,4 +44,11 @@ public class ReportImportService {
         Report created = ReportDAO.create(report);
         return created.id();
     }
+
+    public static int createReport(int groupId, LocalDateTime importStart, LocalDateTime importEnd, int rowCount,
+            int pigCount, int createdBy, LocalDateTime createdAt) throws SQLException {
+        Report report = new Report(0, groupId, importStart, importEnd, rowCount, pigCount, null, createdBy, createdAt);
+        Report created = ReportDAO.create(report);
+        return created.id();
+    }
 }

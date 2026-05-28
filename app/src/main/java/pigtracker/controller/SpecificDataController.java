@@ -24,6 +24,7 @@ import pigtracker.controller.components.FilterChipContainerController;
 import pigtracker.controller.components.FilterChipController;
 import pigtracker.controller.components.SegmentedToggleController;
 import pigtracker.model.Animal;
+import pigtracker.model.InspectorOptions;
 import pigtracker.model.MetricColumn;
 import pigtracker.model.MetricOption;
 import pigtracker.model.Visit;
@@ -62,6 +63,8 @@ public class SpecificDataController {
     private Map<MetricOption, Function<Object, String>> metricFormatters = Map.of();
 
     private List<MetricColumn> columns;
+
+    private InspectorOptions inspectorOptions;
 
     public void setMetricExtractors(Map<MetricOption, Function<Object, Object>> extractors) {
         this.metricExtractors = extractors;
@@ -147,6 +150,10 @@ public class SpecificDataController {
 
     public void setColumns(List<MetricColumn> columns) {
         this.columns = columns;
+    }
+
+    public void setInspectorOptions(InspectorOptions inspectorOptions) {
+        this.inspectorOptions = inspectorOptions;
     }
 
     public void setMetricFormatters(Map<MetricOption, Function<Object, String>> formatters) {
@@ -281,7 +288,7 @@ public class SpecificDataController {
         tableView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
                 try {
-                    AppContext.getDataController().populateInspector(newVal, columns);
+                    AppContext.getDataController().populateInspector(newVal, columns, inspectorOptions);
                 } catch (java.io.IOException e) {
                     e.printStackTrace();
                     javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
