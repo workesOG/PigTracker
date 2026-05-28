@@ -32,7 +32,7 @@
       </TabPane>
       <MenuBar AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <menus>
-          <Menu mnemonicParsing="false" text="Import / Export">
+          <Menu fx:id="importExportMenu" mnemonicParsing="false" text="Import / Export">
             <items>
               <MenuItem mnemonicParsing="false" onAction="#handleImport" text="Import from CSV" />
                   <MenuItem mnemonicParsing="false" onAction="#handleReimport" text="Re-import from CSV" />

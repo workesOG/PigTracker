@@ -10,6 +10,7 @@ import java.util.Optional;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextInputDialog;
@@ -20,6 +21,7 @@ import pigtracker.dao.ReportDAO;
 import pigtracker.dao.VisitDAO;
 import pigtracker.model.Group;
 import pigtracker.model.Report;
+import pigtracker.model.User;
 import pigtracker.service.ExportService;
 import pigtracker.service.ImportService;
 import pigtracker.service.UserService;
@@ -30,11 +32,13 @@ import pigtracker.util.Session;
 public class MainController {
 
     private static final int REPORTS_TAB_INDEX = 2;
-    private static final FileChooser.ExtensionFilter CSV_FILTER =
-            new FileChooser.ExtensionFilter("CSV Files", "*.csv");
+    private static final FileChooser.ExtensionFilter CSV_FILTER = new FileChooser.ExtensionFilter("CSV Files", "*.csv");
 
     @FXML
     private TabPane mainTabPane;
+
+    @FXML
+    private Menu importExportMenu;
 
     @FXML
     private MenuItem toggleDiscontinuedAnimalsMenu;
@@ -53,6 +57,7 @@ public class MainController {
     @FXML
     public void initialize() {
         AppContext.setMainController(this);
+        updateImportExportMenuVisibility();
         updateMenuText();
         mainTabPane.getSelectionModel().selectedIndexProperty().addListener((obs, oldIdx, newIdx) -> {
             if (newIdx == null || newIdx.intValue() != REPORTS_TAB_INDEX) {
@@ -74,10 +79,15 @@ public class MainController {
         }
     }
 
+    private void updateImportExportMenuVisibility() {
+        boolean hasAdminPermissions = Session.getCurrentUser().permission() == User.Permission.ADMIN;
+        importExportMenu.setDisable(!false);
+    }
+
     private void updateMenuText() {
         if (toggleDiscontinuedAnimalsMenu != null) {
-            toggleDiscontinuedAnimalsMenu.setText(
-                    showDiscontinuedAnimals ? "Hide Discontinued Animals" : "Show Discontinued Animals");
+            toggleDiscontinuedAnimalsMenu
+                    .setText(showDiscontinuedAnimals ? "Hide Discontinued Animals" : "Show Discontinued Animals");
         }
     }
 
